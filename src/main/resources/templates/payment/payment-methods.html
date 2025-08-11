@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chọn phương thức thanh toán - ActurusBooks</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .payment-container {
+            max-width: 800px;
+            margin: 2rem auto;
+        }
+
+        .payment-method {
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .payment-method:hover {
+            border-color: #007bff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.2);
+        }
+
+        .payment-method.selected {
+            border-color: #007bff;
+            background-color: rgba(0, 123, 255, 0.05);
+        }
+
+        .payment-logo {
+            width: 60px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        .order-summary {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/navbar-customer :: navbar}"></div>
+
+    <div class="container payment-container">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="fas fa-credit-card me-2"></i>Chọn phương thức thanh toán</h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- MOMO Payment -->
+                        <div class="payment-method" onclick="selectPayment('momo')">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <img src="/img/momo-logo.png" alt="MOMO" class="payment-logo"
+                                        onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA2MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjQwIiByeD0iOCIgZmlsbD0iI0E1MDA4NiIvPgo8dGV4dCB4PSIzMCIgeT0iMjUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5NT01PPC90ZXh0Pgo8L3N2Zz4K'">
+                                </div>
+                                <div class="col">
+                                    <h5 class="mb-1">MOMO</h5>
+                                    <p class="text-muted mb-0">Thanh toán qua ví điện tử MOMO</p>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-check-circle text-success d-none"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- VNPay Payment -->
+                        <div class="payment-method" onclick="selectPayment('vnpay')">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <img src="/img/vnpay-logo.png" alt="VNPay" class="payment-logo"
+                                        onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA2MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjQwIiByeD0iOCIgZmlsbD0iIzAwNjZGRiIvPgo8dGV4dCB4PSIzMCIgeT0iMjUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5WTlBheTwvdGV4dD4KPC9zdmc+Cg=='">
+                                </div>
+                                <div class="col">
+                                    <h5 class="mb-1">VNPay</h5>
+                                    <p class="text-muted mb-0">Thanh toán qua thẻ ATM/Visa/MasterCard</p>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-check-circle text-success d-none"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ZaloPay Payment -->
+                        <div class="payment-method" onclick="selectPayment('zalopay')">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <img src="/img/zalopay-logo.png" alt="ZaloPay" class="payment-logo"
+                                        onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA2MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjQwIiByeD0iOCIgZmlsbD0iIzAwNzVGRiIvPgo8dGV4dCB4PSIzMCIgeT0iMjUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5aYWxvUGF5PC90ZXh0Pgo8L3N2Zz4K'">
+                                </div>
+                                <div class="col">
+                                    <h5 class="mb-1">ZaloPay</h5>
+                                    <p class="text-muted mb-0">Thanh toán qua ví điện tử ZaloPay</p>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-check-circle text-success d-none"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cash on Delivery -->
+                        <div class="payment-method" onclick="selectPayment('cod')">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <i class="fas fa-money-bill-wave text-success" style="font-size: 2rem;"></i>
+                                </div>
+                                <div class="col">
+                                    <h5 class="mb-1">Thanh toán khi nhận hàng (COD)</h5>
+                                    <p class="text-muted mb-0">Thanh toán bằng tiền mặt khi nhận hàng</p>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-check-circle text-success d-none"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="order-summary">
+                    <h5 class="mb-3"><i class="fas fa-receipt me-2"></i>Tóm tắt đơn hàng</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Đơn hàng #</span>
+                        <span th:text="${orderId}" class="fw-bold">12345</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tổng tiền hàng:</span>
+                        <span th:text="${#numbers.formatCurrency(subtotal)}">500,000 ₫</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Phí vận chuyển:</span>
+                        <span>30,000 ₫</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3">
+                        <strong>Tổng thanh toán:</strong>
+                        <strong th:text="${#numbers.formatCurrency(total)}" class="text-primary">530,000 ₫</strong>
+                    </div>
+
+                    <form id="paymentForm" method="post">
+                        <input type="hidden" name="orderId" th:value="${orderId}">
+                        <input type="hidden" name="amount" th:value="${total}">
+                        <button type="submit" class="btn btn-primary w-100" id="paymentBtn" disabled>
+                            <i class="fas fa-lock me-2"></i>Thanh toán ngay
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let selectedPayment = null;
+
+        function selectPayment(method) {
+            // Remove previous selection
+            document.querySelectorAll('.payment-method').forEach(el => {
+                el.classList.remove('selected');
+                el.querySelector('.fa-check-circle').classList.add('d-none');
+            });
+
+            // Add new selection
+            event.currentTarget.classList.add('selected');
+            event.currentTarget.querySelector('.fa-check-circle').classList.remove('d-none');
+
+            selectedPayment = method;
+
+            // Update form action
+            const form = document.getElementById('paymentForm');
+            const btn = document.getElementById('paymentBtn');
+
+            if (method === 'cod') {
+                form.action = '/order/confirm-cod';
+                btn.innerHTML = '<i class="fas fa-check me-2"></i>Xác nhận đặt hàng';
+                btn.disabled = false;
+            } else {
+                form.action = '/payment/' + method;
+                btn.innerHTML = '<i class="fas fa-lock me-2"></i>Thanh toán ngay';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+
+</html>

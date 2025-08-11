@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết quả thanh toán - ActurusBooks</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .result-container {
+            max-width: 600px;
+            margin: 3rem auto;
+            text-align: center;
+        }
+
+        .success-icon {
+            color: #28a745;
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .error-icon {
+            color: #dc3545;
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-card {
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .success-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 2rem;
+        }
+
+        .error-header {
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+            color: white;
+            padding: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/navbar-customer :: navbar}"></div>
+
+    <div class="container">
+        <div class="result-container">
+            <div class="card result-card">
+                <!-- Success Result -->
+                <div th:if="${success}" class="success-header">
+                    <i class="fas fa-check-circle success-icon"></i>
+                    <h2 class="mb-0">Thanh toán thành công!</h2>
+                </div>
+
+                <!-- Error Result -->
+                <div th:unless="${success}" class="error-header">
+                    <i class="fas fa-times-circle error-icon"></i>
+                    <h2 class="mb-0">Thanh toán thất bại!</h2>
+                </div>
+
+                <div class="card-body p-4">
+                    <div class="alert alert-success" th:if="${success}">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span th:text="${message}">Thanh toán của bạn đã được xử lý thành công.</span>
+                    </div>
+
+                    <div class="alert alert-danger" th:unless="${success}">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span th:text="${message}">Có lỗi xảy ra trong quá trình thanh toán.</span>
+                    </div>
+
+                    <div class="row" th:if="${orderId}">
+                        <div class="col-md-6">
+                            <strong>Mã đơn hàng:</strong>
+                        </div>
+                        <div class="col-md-6">
+                            <span th:text="${orderId}">ORDER_123</span>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2" th:if="${amount}">
+                        <div class="col-md-6">
+                            <strong>Số tiền:</strong>
+                        </div>
+                        <div class="col-md-6">
+                            <span th:text="${#numbers.formatCurrency(amount)}">500,000 ₫</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="/" class="btn btn-primary me-2">
+                            <i class="fas fa-home me-2"></i>Về trang chủ
+                        </a>
+                        <a href="/customer/orders" class="btn btn-outline-primary" th:if="${success}">
+                            <i class="fas fa-list me-2"></i>Xem đơn hàng
+                        </a>
+                        <a href="/cart/view" class="btn btn-outline-secondary" th:unless="${success}">
+                            <i class="fas fa-shopping-cart me-2"></i>Quay về giỏ hàng
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

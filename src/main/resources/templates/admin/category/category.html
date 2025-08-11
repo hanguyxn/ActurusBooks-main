@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Quản lý danh mục</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/index.css" />
+    <style>
+        .table-container {
+            max-height: 85vh;
+            overflow-y: auto;
+            transition: opacity 0.5s ease-in-out, transform 0.3s ease;
+        }
+
+        .table img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+            transition: transform 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .table img:hover {
+            transform: scale(1.05);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+            font-size: 0.9rem;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(39, 205, 228, 0.18);
+        }
+
+        .form-control {
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: #27cde4;
+            box-shadow: 0 0 8px rgba(39, 205, 228, 0.18);
+        }
+
+        .btn-success,
+        .btn-secondary,
+        .btn-warning,
+        .btn-danger {
+            font-size: 0.9rem;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-success:hover,
+        .btn-warning:hover,
+        .btn-danger:hover {
+            box-shadow: 0 4px 16px rgba(39, 205, 228, 0.18);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <div th:replace="~{fragments/navbar-admin :: navbar}"></div>
+
+        <!-- Main content -->
+        <div class="flex-grow-1 p-4" style="background-color: #f8f9fa; height: 100vh; overflow: hidden;">
+            <h2 class="mb-4" style="font-weight: 600; color: #1a1a1a;">Quản lý danh mục</h2>
+
+            <!-- Alert -->
+            <div th:if="${successMessage}" class="alert alert-success fade show" role="alert">
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger fade show" role="alert">
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Form -->
+            <form th:action="@{/category/add}" method="post" th:object="${category}" class="row g-3 mb-4">
+                <input type="hidden" th:field="*{id}">
+                <div class="col-md-6">
+                    <input type="text" th:field="*{ten}" class="form-control" placeholder="Tên danh mục" required>
+                </div>
+                <div class="col-md-6">
+                    <button type="submit" class="btn btn-success">Thêm danh mục</button>
+                </div>
+            </form>
+
+            <!-- Table -->
+            <div class="table-container fade-in">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên danh mục</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="c : ${categories}">
+                            <td th:text="${c.id}"></td>
+                            <td th:text="${c.ten}"></td>
+                            <td>
+                                <a th:href="@{/category/edit(id=${c.id})}" class="btn btn-warning btn-sm">Sửa</a>
+                                <a th:href="@{/category/delete(id=${c.id})}" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Bạn có chắc muốn xoá?')">Xoá</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đang chuyển hướng đến ZaloPay...</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .loading-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0075FF 0%, #0057CC 100%);
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+
+        .spinner {
+            width: 3rem;
+            height: 3rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="loading-container">
+        <div class="loading-content">
+            <div class="spinner-border spinner" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h3>Đang chuyển hướng đến ZaloPay...</h3>
+            <p>Vui lòng chờ trong giây lát</p>
+        </div>
+    </div>
+
+    <form id="zalopayForm" method="POST" action="https://sb-openapi.zalopay.vn/v2/create">
+        <input type="hidden" name="app_id" th:value="${app_id}">
+        <input type="hidden" name="app_trans_id" th:value="${app_trans_id}">
+        <input type="hidden" name="app_user" th:value="${app_user}">
+        <input type="hidden" name="amount" th:value="${amount}">
+        <input type="hidden" name="app_time" th:value="${app_time}">
+        <input type="hidden" name="embed_data" th:value="${embed_data}">
+        <input type="hidden" name="item" th:value="${item}">
+        <input type="hidden" name="description" th:value="${description}">
+        <input type="hidden" name="bank_code" value="">
+        <input type="hidden" name="mac" th:value="${mac}">
+    </form>
+
+    <script>
+        // Auto submit form after 2 seconds
+        setTimeout(function () {
+            document.getElementById('zalopayForm').submit();
+        }, 2000);
+    </script>
+</body>
+
+</html>

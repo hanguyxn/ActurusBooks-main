@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đang chuyển hướng đến MOMO...</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .loading-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #A50086 0%, #FF6B9D 100%);
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+
+        .spinner {
+            width: 3rem;
+            height: 3rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="loading-container">
+        <div class="loading-content">
+            <div class="spinner-border spinner" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h3>Đang chuyển hướng đến MOMO...</h3>
+            <p>Vui lòng chờ trong giây lát</p>
+        </div>
+    </div>
+
+    <form id="momoForm" method="POST" action="https://test-payment.momo.vn/v2/gateway/api/create">
+        <input type="hidden" name="partnerCode" th:value="${partnerCode}">
+        <input type="hidden" name="partnerName" value="Test">
+        <input type="hidden" name="storeId" value="MomoTestStore">
+        <input type="hidden" name="requestId" th:value="${requestId}">
+        <input type="hidden" name="amount" th:value="${amount}">
+        <input type="hidden" name="orderId" th:value="${orderId}">
+        <input type="hidden" name="orderInfo" th:value="${orderInfo}">
+        <input type="hidden" name="redirectUrl" th:value="${returnUrl}">
+        <input type="hidden" name="ipnUrl" th:value="${notifyUrl}">
+        <input type="hidden" name="lang" value="vi">
+        <input type="hidden" name="requestType" th:value="${requestType}">
+        <input type="hidden" name="autoCapture" value="true">
+        <input type="hidden" name="extraData" value="">
+        <input type="hidden" name="signature" th:value="${signature}">
+    </form>
+
+    <script>
+        // Auto submit form after 2 seconds
+        setTimeout(function () {
+            document.getElementById('momoForm').submit();
+        }, 2000);
+    </script>
+</body>
+
+</html>

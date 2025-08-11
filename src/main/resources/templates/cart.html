@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Giỏ hàng - ActurusBooks</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/index.css">
+</head>
+
+<body>
+    <div th:replace="~{fragments/navbar-customer :: navbar}"></div>
+
+    <section class="cart-section py-5" style="background:#f8f9fa;">
+        <div class="container">
+            <h2 class="fw-bold mb-4">Giỏ hàng của bạn</h2>
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Sản phẩm</th>
+                                    <th scope="col">Đơn giá</th>
+                                    <th scope="col">Số lượng</th>
+                                    <th scope="col">Thành tiền</th>
+                                    <th scope="col"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="item : ${cart}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img th:src="@{${item.imageUrl}}" alt="Ảnh sách" width="60"
+                                                class="me-3 rounded">
+                                            <div>
+                                                <div class="fw-semibold" th:text="${item.title}"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + 'đ'">
+                                    </td>
+                                    <td style="max-width:100px;">
+                                        <form th:action="@{/cart/update}" method="get" class="d-flex">
+                                            <input type="hidden" name="bookId" th:value="${item.bookId}" />
+                                            <input type="number" name="quantity" th:value="${item.quantity}" min="1"
+                                                class="form-control form-control-sm me-2" style="width:70px;">
+                                            <button class="btn btn-sm btn-primary" type="submit"><i
+                                                    class="bi bi-arrow-repeat"></i></button>
+                                        </form>
+                                    </td>
+                                    <td
+                                        th:text="${#numbers.formatDecimal(item.price * item.quantity, 0, 'COMMA', 0, 'POINT')} + 'đ'">
+                                    </td>
+                                    <td>
+                                        <a th:href="@{'/cart/remove/' + ${item.bookId}}"
+                                            class="btn btn-link text-danger p-0"><i class="bi bi-trash"></i></a>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(cart)}">
+                                    <td colspan="5" class="text-center text-muted">Giỏ hàng trống</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <a href="/" class="btn btn-outline-dark mt-3"><i class="bi bi-arrow-left"></i> Tiếp tục mua sắm</a>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-3">Tóm tắt đơn hàng</h5>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tạm tính</span>
+                                <span th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Phí vận chuyển</span>
+                                <span>20.000đ</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="fw-bold">Tổng cộng</span>
+                                <span class="fw-bold text-danger fs-5"
+                                    th:text="${total != null ? #numbers.formatDecimal(total + 20000, 0, 'COMMA', 0, 'POINT') : '0'} + 'đ'">
+                                </span>
+                            </div>
+                            <a href="/cart/checkout" class="btn btn-dark w-100 py-2">Tiến hành đặt hàng</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer py-5">
+        <div class="container">
+            <div class="row g-4 text-dark">
+                <!-- Column 1 -->
+                <div class="col-md-2">
+                    <h5 class="fw-bold">Thể Loại</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Truyện tranh</a></li>
+                        <li><a href="#">Văn học</a></li>
+                        <li><a href="#">Kinh tế</a></li>
+                        <li><a href="#">Thiếu nhi</a></li>
+                        <li><a href="#">Kỹ năng sống</a></li>
+                    </ul>
+                </div>
+                <!-- Column 2 -->
+                <div class="col-md-2">
+                    <h5 class="fw-bold">Tài Khoản</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="register">Đăng ký</a></li>
+                        <li><a href="login">Đăng nhập</a></li>
+                        <li><a href="#">Giỏ hàng</a></li>
+                        <li><a href="#">Yêu thích</a></li>
+                        <li><a href="#">So sánh sách</a></li>
+                    </ul>
+                </div>
+                <!-- Column 3 -->
+                <div class="col-md-2">
+                    <h5 class="fw-bold">Về Chúng Tôi</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Giới thiệu</a></li>
+                        <li><a href="#">Liên hệ</a></li>
+                        <li><a href="#">Hệ thống nhà sách</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <!-- Column 4 -->
+                <div class="col-md-2">
+                    <h5 class="fw-bold">Dịch Vụ</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Lịch sử đơn hàng</a></li>
+                        <li><a href="#">Hỗ trợ khách hàng</a></li>
+                        <li><a href="#">Điều khoản</a></li>
+                        <li><a href="#">Đổi trả</a></li>
+                        <li><a href="#">Giao hàng</a></li>
+                    </ul>
+                </div>
+                <!-- Column 5 - Newsletter -->
+                <div class="col-md-4">
+                    <div class="newsletter-box text-center">
+                        <h5 class="fw-bold">Đăng Ký Nhận Tin</h5>
+                        <p>Nhận ưu đãi <strong>10%</strong> cho đơn hàng đầu tiên khi đăng ký email.</p>
+                        <form class="newsletter-form">
+                            <input type="email" class="form-control" placeholder="Nhập email của bạn..." required>
+                            <button type="submit" class="newsletter-btn">
+                                <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </form>
+                        <div class="payment-icons mt-3">
+                            <i class="bi bi-paypal"></i>
+                            <i class="bi bi-cc-visa"></i>
+                            <i class="bi bi-credit-card"></i>
+                            <i class="bi bi-amazon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Cart count update script -->
+    <script>
+        // Update cart count when page loads
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.updateCartCount) {
+                window.updateCartCount();
+            }
+        });
+
+        // Update cart count after quantity changes
+        function updateQuantityAndCartCount(bookId, quantity) {
+            // Redirect to update endpoint
+            window.location.href = `/cart/update?bookId=${bookId}&quantity=${quantity}`;
+        }
+
+        // Update cart count after removing items
+        function removeItemAndUpdateCount(bookId) {
+            // Redirect to remove endpoint
+            window.location.href = `/cart/remove/${bookId}`;
+        }
+    </script>
+</body>
+
+</html>

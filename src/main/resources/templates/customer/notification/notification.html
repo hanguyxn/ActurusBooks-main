@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Quản lý thông báo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/index.css" />
+</head>
+
+<body>
+    <div th:replace="~{fragments/navbar-admin :: navbar}"></div>
+    <div class="container mt-4">
+        <h2>Quản lý thông báo</h2>
+
+        <!-- Form thêm/sửa thông báo -->
+        <div class="card mb-3">
+            <div class="card-header" th:text="${notification != null} ? 'Sửa thông báo' : 'Thêm thông báo'"></div>
+            <div class="card-body">
+                <form th:action="${notification != null} ? @{/admin/notifications/update} : @{/admin/notifications/add}"
+                    th:object="${notification != null ? notification : newNotification}" method="post"
+                    class="notification-form">
+                    <input type="hidden" th:field="*{notificationId}" />
+                    <div class="mb-2">
+                        <label>Tiêu đề</label>
+                        <input th:field="*{title}" class="form-control" required maxlength="200" />
+                    </div>
+                    <div class="mb-2">
+                        <label>Nội dung</label>
+                        <textarea th:field="*{content}" class="form-control" required rows="2"></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label>Người nhận</label>
+                        <input th:field="*{recipient}" class="form-control" required maxlength="50" placeholder="all" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                    <a th:if="${notification != null}" th:href="@{/admin/notifications}"
+                        class="btn btn-secondary">Hủy</a>
+                </form>
+            </div>
+        </div>
+
+        <!-- Danh sách thông báo -->
+        <div class="table-container fade-in">
+            <table class="table table-striped notification-table">
+                <thead>
+                    <tr>
+                        <th>Tiêu đề</th>
+                        <th>Ngày gửi</th>
+                        <th>Người nhận</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="notification : ${notifications}">
+                        <td th:text="${notification.title}"></td>
+                        <td th:text="${#temporals.format(notification.sentDate, 'yyyy-MM-dd')}"></td>
+                        <td th:text="${notification.recipient}"></td>
+                        <td>
+                            <a th:href="@{/admin/notifications/edit/{id}(id=${notification.notificationId})}"
+                                class="btn btn-warning btn-sm me-1">Sửa</a>
+                            <a th:href="@{/admin/notifications/delete/{id}(id=${notification.notificationId})}"
+                                class="btn btn-danger btn-sm" onclick="return confirm('Xác nhận xóa?')">Xóa</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

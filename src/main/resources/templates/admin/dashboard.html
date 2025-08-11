@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Bookstore</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            transition: transform 0.3s;
+            border: none;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stats-card-2 {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 15px;
+            transition: transform 0.3s;
+            border: none;
+        }
+
+        .stats-card-3 {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border-radius: 15px;
+            transition: transform 0.3s;
+            border: none;
+        }
+
+        .stats-card-4 {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            border-radius: 15px;
+            transition: transform 0.3s;
+            border: none;
+        }
+
+        .stats-card-2:hover,
+        .stats-card-3:hover,
+        .stats-card-4:hover {
+            transform: translateY(-5px);
+        }
+
+        .dashboard-content {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <nav class="bg-dark text-white p-4" style="width: 250px; min-height: 100vh;">
+            <h4 class="fw-bold text-white mb-4 text-center">ActurusBooks</h4>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link text-white active" href="/admin/dashboard">
+                        <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="/">
+                        <i class="fas fa-home me-2"></i> Trang khách
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="/admin/books">
+                        <i class="fas fa-book me-2"></i> Quản lý sách
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="/admin/discounts/list">
+                        <i class="fas fa-percent me-2"></i> Mã giảm giá
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="/category/list">
+                        <i class="fas fa-list me-2"></i> Danh mục
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="/admin/users">
+                        <i class="fas fa-users me-2"></i> Người dùng
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="/admin/orders">
+                        <i class="fas fa-shopping-cart me-2"></i> Đơn hàng
+                    </a>
+                </li>
+                <li class="nav-item mt-3">
+                    <a class="nav-link text-danger" href="/logout">
+                        <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="flex-grow-1 dashboard-content p-4">
+            <div class="container-fluid">
+                <!-- Header -->
+                <div class="row mb-4">
+                    <div class="col">
+                        <h2 class="mb-0">Dashboard</h2>
+                        <p class="text-muted">Chào mừng bạn đến với trang quản trị ActurusBooks</p>
+                    </div>
+                    <div class="col-auto">
+                        <div class="text-end">
+                            <div class="fw-bold">12/08/2025</div>
+                            <small class="text-muted">Admin Panel</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="card stats-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-book fa-3x mb-3"></i>
+                                <h3 class="card-title" th:text="${totalBooks ?: '0'}">0</h3>
+                                <p class="card-text">Tổng số sách</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card stats-card-2">
+                            <div class="card-body text-center">
+                                <i class="fas fa-shopping-cart fa-3x mb-3"></i>
+                                <h3 class="card-title" th:text="${totalOrders ?: '0'}">0</h3>
+                                <p class="card-text">Tổng đơn hàng</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card stats-card-3">
+                            <div class="card-body text-center">
+                                <i class="fas fa-users fa-3x mb-3"></i>
+                                <h3 class="card-title" th:text="${totalUsers ?: '50'}">50</h3>
+                                <p class="card-text">Khách hàng</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card stats-card-4">
+                            <div class="card-body text-center">
+                                <i class="fas fa-dollar-sign fa-3x mb-3"></i>
+                                <h3 class="card-title">15M</h3>
+                                <p class="card-text">Doanh thu</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Thao tác nhanh</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3 mb-2">
+                                        <a href="/admin/books" class="btn btn-primary w-100">
+                                            <i class="fas fa-book me-2"></i>Quản lý sách
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <a href="/admin/orders" class="btn btn-success w-100">
+                                            <i class="fas fa-shopping-cart me-2"></i>Đơn hàng
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <a href="/admin/users" class="btn btn-info w-100">
+                                            <i class="fas fa-users me-2"></i>Người dùng
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <a href="/categories/list" class="btn btn-warning w-100">
+                                            <i class="fas fa-tags me-2"></i>Danh mục
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Orders -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Đơn hàng gần đây</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Khách hàng</th>
+                                                <th>Tổng tiền</th>
+                                                <th>Trạng thái</th>
+                                                <th>Ngày đặt</th>
+                                                <th>Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="order : ${recentOrders}" th:if="${recentOrders != null}">
+                                                <td th:text="${order.order_id}">1</td>
+                                                <td th:text="${order.user?.username ?: 'N/A'}">Khách hàng</td>
+                                                <td th:text="${order.total_amount ?: '0'} + 'đ'">100,000đ</td>
+                                                <td>
+                                                    <span class="badge bg-warning"
+                                                        th:if="${order.status == 'PENDING'}">Chờ
+                                                        xác nhận</span>
+                                                    <span class="badge bg-info"
+                                                        th:if="${order.status == 'CONFIRMED'}">Đã
+                                                        xác nhận</span>
+                                                    <span class="badge bg-primary"
+                                                        th:if="${order.status == 'SHIPPING'}">Đang giao</span>
+                                                    <span class="badge bg-success"
+                                                        th:if="${order.status == 'DELIVERED'}">Đã
+                                                        giao</span>
+                                                    <span class="badge bg-danger"
+                                                        th:if="${order.status == 'CANCELLED'}">Đã
+                                                        hủy</span>
+                                                </td>
+                                                <td
+                                                    th:text="${order.order_date != null ? order.order_date.toString().substring(0,10) : 'N/A'}">
+                                                    12/08/2025</td>
+                                                <td>
+                                                    <a th:href="@{/admin/orders/{id}(id=${order.order_id})}"
+                                                        class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${recentOrders == null or #lists.isEmpty(recentOrders)}">
+                                                <td colspan="6" class="text-center py-4">
+                                                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                                                    <br>
+                                                    <span class="text-muted">Chưa có đơn hàng nào</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

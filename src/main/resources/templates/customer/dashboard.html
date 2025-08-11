@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ActurusBooks</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <div th:replace="~{fragments/navbar-customer :: navbar}"></div>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-person-circle"></i>
+                            <span th:text="${user.full_name}">Tên người dùng</span>
+                        </h5>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <a href="/user/dashboard" class="list-group-item list-group-item-action active">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                        <a href="/user/orders" class="list-group-item list-group-item-action">
+                            <i class="bi bi-box-seam"></i> Đơn hàng của tôi
+                        </a>
+                        <a href="/cart/view" class="list-group-item list-group-item-action">
+                            <i class="bi bi-cart"></i> Giỏ hàng
+                        </a>
+                        <a href="/wishlist" class="list-group-item list-group-item-action">
+                            <i class="bi bi-heart"></i> Danh sách yêu thích
+                        </a>
+                        <a href="/logout" class="list-group-item list-group-item-action text-danger">
+                            <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Dashboard</h2>
+                    <div class="text-muted">
+                        Chào mừng trở lại, <strong th:text="${user.full_name}">Tên người dùng</strong>!
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 th:text="${totalOrders}">0</h4>
+                                        <p>Tổng đơn hàng</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-box-seam fs-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 th:text="${completedOrders}">0</h4>
+                                        <p>Đã giao</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-check-circle fs-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 th:text="${pendingOrders}">0</h4>
+                                        <p>Đang xử lý</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-clock fs-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 th:text="${wishlistCount}">0</h4>
+                                        <p>Yêu thích</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-heart fs-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thông tin cá nhân -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="bi bi-person-badge me-2"></i>Thông tin tài khoản</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Họ và tên</label>
+                                        <input type="text" class="form-control" th:value="${user.full_name}" readonly>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Email</label>
+                                        <input type="email" class="form-control" th:value="${user.email}" readonly>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Số điện thoại</label>
+                                        <input type="tel" class="form-control" th:value="${user.phone}" readonly>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Địa chỉ</label>
+                                        <input type="text" class="form-control" th:value="${user.address}" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Thao tác nhanh</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3 mb-3">
+                                        <a href="/" class="btn btn-outline-primary w-100">
+                                            <i class="bi bi-book"></i>
+                                            <br>Duyệt sách
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <a href="/cart/view" class="btn btn-outline-success w-100">
+                                            <i class="bi bi-cart"></i>
+                                            <br>Xem giỏ hàng
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <a href="/user/orders" class="btn btn-outline-info w-100">
+                                            <i class="bi bi-box-seam"></i>
+                                            <br>Đơn hàng
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <a href="/change-password" class="btn btn-outline-warning w-100">
+                                            <i class="bi bi-key"></i>
+                                            <br>Đổi mật khẩu
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Hoạt động gần đây</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted">Chưa có hoạt động nào gần đây.</p>
+                                <a href="/" class="btn btn-primary">Bắt đầu mua sắm</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

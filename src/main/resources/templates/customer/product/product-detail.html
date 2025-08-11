@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chi tiết sản phẩm - ActurusBooks</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/index.css">
+</head>
+
+<body>
+    <!-- Header/Navbar giữ nguyên -->
+    <div th:replace="~{fragments/navbar-customer :: navbar}"></div>
+
+    <!-- Chi tiết sản phẩm -->
+    <section class="product-detail py-5">
+        <div class="container">
+            <div class="row g-5">
+                <!-- Ảnh sách -->
+                <div class="col-md-5 text-center">
+                    <img th:src="@{${book.imageUrl}}" th:alt="${book.title}" class="img-fluid rounded shadow-sm"
+                        style="height: 320px;">
+                </div>
+                <!-- Thông tin sách -->
+                <div class="col-md-7">
+                    <h2 class="fw-bold mb-2" th:text="${book.title}">Tên sách</h2>
+                    <p class="text-muted mb-3"
+                        th:text="'Thể loại: ' + (${book.category} != null ? ${book.category} : 'Đang cập nhật')"></p>
+                    <div class="mb-3">
+                        <span class="fs-4 fw-bold text-danger"
+                            th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        <span class="badge bg-success ms-2" th:if="${book.stock > 0}">Còn hàng</span>
+                        <span class="badge bg-danger ms-2" th:if="${book.stock == 0}">Hết hàng</span>
+                    </div>
+                    <p class="mb-4" th:text="${book.description}">Mô tả sách</p>
+                    <form th:action="@{/cart/add}" method="post" class="d-flex align-items-center mb-4"
+                        style="max-width: 300px;">
+                        <input type="hidden" name="bookId" th:value="${book.bookId}">
+                        <input type="number" name="quantity" class="form-control me-2" value="1" min="1"
+                            th:max="${book.stock ?: 9999}" style="width:80px;" required>
+                        <button type="submit" class="btn btn-dark flex-grow-1" th:disabled="${book.stock == 0}">
+                            <i class="bi bi-cart me-2"></i>Thêm vào giỏ
+                        </button>
+                    </form>
+                    <div class="d-flex gap-2 mb-4">
+                        <form th:action="@{/wishlist/add/{bookId}(bookId=${book.bookId})}" method="post"
+                            class="d-inline">
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="bi bi-heart"></i> Yêu thích
+                            </button>
+                        </form>
+                        <button class="btn btn-outline-primary" onclick="shareProduct()">
+                            <i class="bi bi-share"></i> Chia sẻ
+                        </button>
+                    </div>
+                    <div>
+                        <span class="me-3"><i class="bi bi-truck"></i> Giao hàng toàn quốc</span>
+                        <span><i class="bi bi-arrow-repeat"></i> Đổi trả trong 7 ngày</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Tab mô tả, đánh giá -->
+            <div class="row mt-5">
+                <div class="col-12">
+                    <ul class="nav nav-tabs" id="productTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc"
+                                type="button" role="tab">Mô tả</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="review-tab" data-bs-toggle="tab" data-bs-target="#review"
+                                type="button" role="tab">Đánh giá</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content p-4 border border-top-0 rounded-bottom" id="productTabContent">
+                        <div class="tab-pane fade show active" id="desc" role="tabpanel">
+                            <p th:text="${book.description}">Mô tả sách</p>
+                        </div>
+                        <div class="tab-pane fade" id="review" role="tabpanel">
+                            <p>Chưa có đánh giá nào cho sản phẩm này.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer giữ nguyên -->
+    <footer class="footer py-5">
+        <div class="container">
+            <div class="row g-4 text-dark">
+                <!-- Column 1 -->
+                <div class="col-md-2">
+                    <h5 class="fw-bold">Thể Loại</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Truyện tranh</a></li>
+                        <li><a href="#">Văn học</a></li>
+                        <li><a href="#">Kinh tế</a></li>
+                        <li><a href="#">Thiếu nhi</a></li>
+                        <li><a href="#">Kỹ năng sống</a></li>
+                    </ul>
+                </div>
+                <!-- Column 2 -->
+                <div class="col-md-2">
+                    <h5 class="fw-bold">Tài Khoản</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="register.html">Đăng ký</a></li>
+                        <li><a href="login.html">Đăng nhập</a></li>
+                        <li><a href="#">Giỏ hàng</a></li>
+                        <li><a href="#">Yêu thích</a></li>
+                        <li><a href="#">So sánh sách</a></li>
+                    </ul>
+                </div>
+                <!-- Column 3 -->
+                <div class="col-md-2">
+                    <h5 class="fw-bold">Về Chúng Tôi</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Giới thiệu</a></li>
+                        <li><a href="#">Liên hệ</a></li>
+                        <li><a href="#">Hệ thống nhà sách</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <!-- Column 4 -->
+                <div class="col-md-2">
+                    <h5 class="fw-bold">Dịch Vụ</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Lịch sử đơn hàng</a></li>
+                        <li><a href="#">Hỗ trợ khách hàng</a></li>
+                        <li><a href="#">Điều khoản</a></li>
+                        <li><a href="#">Đổi trả</a></li>
+                        <li><a href="#">Giao hàng</a></li>
+                    </ul>
+                </div>
+                <!-- Column 5 - Newsletter -->
+                <div class="col-md-4">
+                    <div class="newsletter-box text-center">
+                        <h5 class="fw-bold">Đăng Ký Nhận Tin</h5>
+                        <p>Nhận ưu đãi <strong>10%</strong> cho đơn hàng đầu tiên khi đăng ký email.</p>
+                        <form class="newsletter-form">
+                            <input type="email" class="form-control" placeholder="Nhập email của bạn..." required>
+                            <button type="submit" class="newsletter-btn">
+                                <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </form>
+                        <div class="payment-icons mt-3">
+                            <i class="bi bi-paypal"></i>
+                            <i class="bi bi-cc-visa"></i>
+                            <i class="bi bi-credit-card"></i>
+                            <i class="bi bi-amazon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- Bootstrap JS (for tabs) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ActurusBooks - Quản lý sách</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/index.css" />
+    <style>
+        .table-container {
+            max-height: 85vh;
+            overflow-y: auto;
+            transition: opacity 0.5s ease-in-out, transform 0.3s ease;
+        }
+
+        .table img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+            transition: transform 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .table img:hover {
+            transform: scale(1.05);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+            font-size: 0.9rem;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(39, 205, 228, 0.18);
+        }
+
+        .form-control {
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: #27cde4;
+            box-shadow: 0 0 8px rgba(39, 205, 228, 0.18);
+        }
+
+        .btn-success,
+        .btn-secondary,
+        .btn-warning,
+        .btn-danger {
+            font-size: 0.9rem;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-success:hover,
+        .btn-warning:hover,
+        .btn-danger:hover {
+            box-shadow: 0 4px 16px rgba(39, 205, 228, 0.18);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <div th:replace="~{fragments/navbar-admin :: navbar}"></div>
+
+        <!-- Nội dung chính -->
+        <div class="flex-grow-1 p-4" style="background-color: #f8f9fa; height: 100vh; overflow: hidden;">
+            <h2 class="mb-4" style="font-weight: 600; color: #1a1a1a;">Quản lý sách</h2>
+
+            <!-- Thông báo -->
+            <div th:if="${successMessage}" class="alert alert-success fade show" role="alert">
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger fade show" role="alert">
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="table-container fade-in">
+                <!-- 🔹 Form thêm/sửa sách -->
+                <div class="col-md-6 mb-4">
+                    <form th:action="@{${editMode} ? '/admin/books/edit' : '/admin/books/add'}" th:object="${book}"
+                        method="post" enctype="multipart/form-data" class="mb-4">
+                        <input type="hidden" th:field="*{bookId}" />
+
+                        <div class="mb-3">
+                            <input type="text" class="form-control" th:field="*{title}" placeholder="Tên sách"
+                                required />
+                        </div>
+                        <div class="mb-3">
+                            <input type="number" class="form-control" th:field="*{price}" placeholder="Giá" required />
+                        </div>
+                        <div class="mb-3">
+                            <input type="number" class="form-control" th:field="*{stock}" placeholder="Tồn kho"
+                                required />
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" th:field="*{category}" placeholder="Thể loại" />
+                        </div>
+
+                        <!-- Upload ảnh -->
+                        <div class="mb-3">
+                            <label class="form-label">📸 Chọn ảnh từ máy tính</label>
+                            <input type="file" class="form-control" name="imageFile" accept="image/*" />
+                            <small class="form-text text-muted">Hoặc upload ảnh từ máy tính (jpg, png, gif)</small>
+                        </div>
+
+                        <!-- URL ảnh -->
+                        <div class="mb-3">
+                            <label class="form-label">🔗 Hoặc nhập link ảnh</label>
+                            <input type="text" class="form-control" th:field="*{imageUrl}"
+                                placeholder="https://images.unsplash.com/photo-1543002588-bfa74002ed7e"
+                                maxlength="500" />
+                            <small class="form-text text-muted">URL ảnh trực tiếp (jpg, png, gif). Tối đa 500 ký
+                                tự.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <input type="text" class="form-control" th:field="*{description}" placeholder="Mô tả" />
+                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-success"
+                                th:text="${editMode} ? 'Cập nhật' : 'Thêm mới'"></button>
+                            <a th:if="${editMode}" th:href="@{/admin/books}" class="btn btn-secondary ms-2">Huỷ</a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 🔹 Danh sách sách -->
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên sách</th>
+                            <th>Giá</th>
+                            <th>Tồn kho</th>
+                            <th>Thể loại</th>
+                            <th>Ảnh</th>
+                            <th>Mô tả</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="b : ${books}">
+                            <td th:text="${b.bookId}"></td>
+                            <td th:text="${b.title}"></td>
+                            <td th:text="${b.price}"></td>
+                            <td th:text="${b.stock}"></td>
+                            <td th:text="${b.category}"></td>
+                            <td>
+                                <img th:src="${b.imageUrl != null and b.imageUrl != ''} ? ${#strings.escapeXml(b.imageUrl)} : '/img/placeholder.png'"
+                                    alt="Book Image"
+                                    style="width:50px;height:50px;object-fit:cover;border-radius:4px;" />
+                            </td>
+                            <td th:text="${b.description}"></td>
+                            <td>
+                                <a th:href="@{'/admin/books/edit/' + ${b.bookId}}"
+                                    class="btn btn-warning btn-sm">Sửa</a>
+                                <a th:href="@{'/admin/books/delete/' + ${b.bookId}}" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Bạn chắc chắn muốn xoá?')">Xoá</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Đóng alert tự động sau 3 giây
+            setTimeout(() => {
+                document.querySelectorAll('.alert').forEach(alert => {
+                    alert.classList.remove('show');
+                    alert.classList.add('fade');
+                });
+            }, 3000);
+
+            // Cuộn về đầu bảng khi tải trang
+            const tableContainer = document.querySelector('.table-container');
+            if (tableContainer) {
+                tableContainer.scrollTop = 0;
+            }
+
+            // Giữ trạng thái cuộn khi thêm sách
+            const scrollPosition = localStorage.getItem('tableScrollPosition');
+            if (scrollPosition && tableContainer) {
+                tableContainer.scrollTop = parseInt(scrollPosition);
+            }
+            tableContainer?.addEventListener('scroll', () => {
+                localStorage.setItem('tableScrollPosition', tableContainer.scrollTop);
+            });
+        });
+    </script>
+</body>
+
+</html>

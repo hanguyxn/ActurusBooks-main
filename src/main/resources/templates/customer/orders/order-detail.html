@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Đơn Hàng - ActurusBooks</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link th:href="@{/css/index.css}" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <div th:replace="~{fragments/navbar-customer}"></div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a th:href="@{/}">Trang chủ</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/user/dashboard}">Tài khoản</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/user/orders}">Đơn hàng của tôi</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Chi tiết đơn hàng</li>
+                    </ol>
+                </nav>
+
+                <!-- Order Info Card -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-receipt me-2"></i>
+                            Chi Tiết Đơn Hàng #<span th:text="${order.order_id}"></span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold">Thông tin đơn hàng:</h6>
+                                <p class="mb-1"><strong>Mã đơn hàng:</strong> <span th:text="${order.order_id}"></span>
+                                </p>
+                                <p class="mb-1"><strong>Ngày đặt:</strong> <span th:text="${order.orderDate}"></span>
+                                </p>
+                                <p class="mb-1"><strong>Trạng thái:</strong>
+                                    <span class="badge"
+                                        th:classappend="${order.status == 'Chờ xác nhận'} ? 'bg-warning' : 
+                                                        (${order.status == 'Đã xác nhận'} ? 'bg-info' : 
+                                                        (${order.status == 'Đang giao'} ? 'bg-primary' : 
+                                                        (${order.status == 'Đã giao'} ? 'bg-success' : 
+                                                        (${order.status == 'Đã hủy'} ? 'bg-danger' : 'bg-secondary'))))"
+                                        th:text="${order.status}"></span>
+                                </p>
+                                <p class="mb-1"><strong>Phương thức thanh toán:</strong> <span
+                                        th:text="${order.payment_method}"></span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold">Thông tin giao hàng:</h6>
+                                <p class="mb-1"><strong>Người nhận:</strong> <span
+                                        th:text="${order.user.full_name}"></span></p>
+                                <p class="mb-1"><strong>Số điện thoại:</strong> <span
+                                        th:text="${order.user.phone}"></span></p>
+                                <p class="mb-1"><strong>Địa chỉ:</strong> <span th:text="${order.user.address}"></span>
+                                </p>
+                                <p class="mb-0"><strong>Tổng tiền:</strong>
+                                    <span class="text-success fw-bold fs-5"
+                                        th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-book me-2"></i>
+                            Sản phẩm đã đặt
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th>Giá</th>
+                                        <th>Số lượng</th>
+                                        <th>Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="detail : ${orderDetails}">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img th:src="@{'/img/' + ${detail.book.imageUrl}}"
+                                                    class="img-thumbnail me-3"
+                                                    style="width: 60px; height: 80px; object-fit: cover;"
+                                                    th:alt="${detail.book.title}">
+                                                <div>
+                                                    <h6 class="mb-0" th:text="${detail.book.title}"></h6>
+                                                    <small class="text-muted" th:text="${detail.book.category}"></small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold"
+                                                th:text="${#numbers.formatDecimal(detail.book.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary" th:text="${detail.quantity}"></span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold text-success"
+                                                th:text="${#numbers.formatDecimal(detail.book.price * detail.quantity, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-active">
+                                        <th colspan="3" class="text-end">Tổng cộng:</th>
+                                        <th>
+                                            <span class="text-success fw-bold fs-5"
+                                                th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                        </th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <a th:href="@{/user/orders}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách đơn hàng
+                            </a>
+
+                            <!-- Cancel button - only show if order can be cancelled -->
+                            <div th:if="${order.status == 'Chờ xác nhận' or order.status == 'Đã xác nhận'}">
+                                <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                                    data-bs-target="#cancelModal">
+                                    <i class="fas fa-times me-2"></i>Hủy đơn hàng
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Order Modal -->
+    <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cancelModalLabel">Xác nhận hủy đơn hàng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Bạn có chắc chắn muốn hủy đơn hàng #<span th:text="${order.order_id}"></span> không?</p>
+                    <p class="text-muted">Thao tác này không thể hoàn tác.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <form th:action="@{'/order/cancel/' + ${order.order_id}}" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">Xác nhận hủy</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div th:replace="~{fragments/footer}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

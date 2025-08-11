@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chi tiết tài khoản - ActurusBooks</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/index.css">
+</head>
+
+<body>
+    <!-- Navbar Section -->
+    <div th:replace="~{fragments/navbar-customer :: navbar}"></div>
+    <!-- Chi tiết tài khoản -->
+    <section class="account-detail-section py-5" style="background:#f8f9fa;">
+        <div class="container">
+            <div class="row">
+                <!-- Sidebar tài khoản -->
+                <div class="col-md-3 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-person-circle" style="font-size:3rem;"></i>
+                            <h5 class="mt-2 mb-0" th:text="${user.full_name}">Tên người dùng</h5>
+                            <p class="text-muted mb-2" style="font-size:0.95rem;" th:text="${user.role}">Vai trò</p>
+                            <hr>
+                            <ul class="nav flex-column">
+                                <li class="nav-item mb-2"><a class="nav-link px-0" href="/profile"><i
+                                            class="bi bi-person me-2"></i>Thông tin tài khoản</a></li>
+                                <li class="nav-item mb-2"><a class="nav-link px-0" href="/orders"><i
+                                            class="bi bi-receipt me-2"></i>Đơn hàng của tôi</a></li>
+                                <li class="nav-item mb-2"><a class="nav-link px-0" href="/wishlist"><i
+                                            class="bi bi-heart me-2"></i>Sách yêu thích</a></li>
+                                <li class="nav-item mb-2"><a class="nav-link px-0" href="/change-password"><i
+                                            class="bi bi-key me-2"></i>Đổi mật khẩu</a></li>
+                                <li class="nav-item"><a class="nav-link px-0 text-danger" href="/logout"><i
+                                            class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- Nội dung chi tiết tài khoản -->
+                <div class="col-md-9">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h4 class="fw-bold mb-4">Thông tin tài khoản</h4>
+                            <form>
+                                <div class="row mb-3">
+                                    <div class="col-md-6 mb-3 mb-md-0">
+                                        <label class="form-label">Họ và tên</label>
+                                        <input type="text" class="form-control" th:value="${user.full_name}" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-control" th:value="${user.email}" readonly>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6 mb-3 mb-md-0">
+                                        <label class="form-label">Số điện thoại</label>
+                                        <input type="tel" class="form-control" th:value="${user.phone}" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Địa chỉ</label>
+                                        <input type="text" class="form-control" th:value="${user.address}" readonly>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Section -->
+    <footer class="footer py-5">
+        <div class="container">
+            <div class="row g-4 text-dark">
+                <!-- Column 1 -->
+                <div class="col-md-2">
+                    <h5 class="fw-bold">Thể Loại</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Truyện tranh</a></li>
+                        <li><a href="#">Văn học</a></li>
+                        <li><a href="#">Kinh tế</a></li>
+                        <li><a href="#">Thiếu nhi</a></li>
+                        <li><a href="#">Kỹ năng sống</a></li>
+                    </ul>
+                </div>
+                <!-- Column 2 -->
+                <div class="col-md-2">
+                    <h5 class="fw-bold">Tài Khoản</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/register">Đăng ký</a></li>
+                        <li><a href="/login">Đăng nhập</a></li>
+                        <li><a href="/cart">Giỏ hàng</a></li>
+                        <li><a href="/wishlist">Yêu thích</a></li>
+                        <li><a href="/compare">So sánh sách</a></li>
+                    </ul>
+                </div>
+                <!-- Column 3 -->
+                <div class="col-md-2">
+                    <h5 class="fw-bold">Về Chúng Tôi</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Giới thiệu</a></li>
+                        <li><a href="#">Liên hệ</a></li>
+                        <li><a href="#">Hệ thống nhà sách</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <!-- Column 4 -->
+                <div class="col-md-2">
+                    <h5 class="fw-bold">Dịch Vụ</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Lịch sử đơn hàng</a></li>
+                        <li><a href="#">Hỗ trợ khách hàng</a></li>
+                        <li><a href="#">Điều khoản</a></li>
+                        <li><a href="#">Đổi trả</a></li>
+                        <li><a href="#">Giao hàng</a></li>
+                    </ul>
+                </div>
+                <!-- Column 5 - Newsletter -->
+                <div class="col-md-4">
+                    <div class="newsletter-box text-center">
+                        <h5 class="fw-bold">Đăng Ký Nhận Tin</h5>
+                        <p>Nhận ưu đãi <strong>10%</strong> cho đơn hàng đầu tiên khi đăng ký email.</p>
+                        <form class="newsletter-form">
+                            <input type="email" class="form-control" placeholder="Nhập email của bạn..." required>
+                            <button type="submit" class="newsletter-btn">
+                                <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </form>
+                        <div class="payment-icons mt-3">
+                            <i class="bi bi-paypal"></i>
+                            <i class="bi bi-cc-visa"></i>
+                            <i class="bi bi-credit-card"></i>
+                            <i class="bi bi-amazon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
