@@ -1,8 +1,11 @@
 package com.example.bookstore.controller.customer;
 
 import com.example.bookstore.entity.Orders;
+import com.example.bookstore.entity.OrderDetail;
 import com.example.bookstore.entity.User;
 import com.example.bookstore.service.OrdersService;
+import com.example.bookstore.service.BookService;
+import com.example.bookstore.service.SimpleEmailService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -17,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.UUID;
+import java.util.List;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -32,6 +36,12 @@ public class PaymentController {
 
     @Autowired
     private OrdersService ordersService;
+
+    @Autowired
+    private BookService bookService;
+
+    @Autowired
+    private SimpleEmailService emailService;
 
     // MoMo Test Environment Configuration
     private static final String MOMO_PARTNER_CODE = "MOMO";
@@ -52,6 +62,10 @@ public class PaymentController {
             HttpSession session,
             RedirectAttributes redirectAttributes) {
         try {
+            System.out.println("=== MoMo Payment Debug ===");
+            System.out.println("Order ID: " + orderId);
+            System.out.println("Amount: " + amount);
+
             // Lấy user từ session
             User currentUser = (User) session.getAttribute("user");
             if (currentUser == null) {
@@ -69,12 +83,20 @@ public class PaymentController {
                 return "redirect:/cart/checkout";
             }
 
+            // Verify amount matches order total
+            long orderAmount = order.getTotal_amount().longValue();
+            if (Math.abs(orderAmount - amount) > 1000) { // Allow small rounding differences
+                System.out.println("Amount mismatch - Order: " + orderAmount + ", Requested: " + amount);
+                redirectAttributes.addFlashAttribute("error", "Số tiền thanh toán không khớp với đơn hàng!");
+                return "redirect:/cart/checkout";
+            }
+
             // Tạo request đến MoMo
             String requestId = UUID.randomUUID().toString();
             String momoOrderId = "ORDER_" + orderId + "_" + System.currentTimeMillis(); // Tạo unique orderId cho MoMo
             String orderInfo = "Thanh toán đơn hàng #" + orderId;
             String extraData = "";
-            String requestType = "captureWallet";
+            String requestType = "payWithATM";
 
             // Tạo signature
             String rawSignature = "accessKey=" + MOMO_ACCESS_KEY +
@@ -161,11 +183,49 @@ public class PaymentController {
             String originalOrderId = extractOriginalOrderId(momoOrderId);
 
             if ("0".equals(resultCode)) {
-                // Thanh toán thành công
-                session.removeAttribute("cart");
+                // Thanh toán thành công - cập nhật payment status
+                Orders order = ordersService.getById(Integer.parseInt(originalOrderId)).orElse(null);
+                if (order != null) {
+                    order.setPayment_status("Đã thanh toán");
+                    order.setStatus("Đã thanh toán"); // Cập nhật cả status chung
+                    ordersService.save(order);
+
+                    // Gửi email thanh toán thành công và hóa đơn
+                    try {
+                        emailService.sendPaymentSuccessEmail(order);
+                        emailService.sendInvoiceEmail(order);
+                    } catch (Exception e) {
+                        System.err.println("Failed to send payment success email: " + e.getMessage());
+                    }
+                }
+
+                // Không cần clear cart nữa vì đã clear khi tạo order
                 return "redirect:/order/success/" + originalOrderId;
             } else {
-                // Thanh toán thất bại
+                // Thanh toán thất bại - cập nhật payment status và hoàn tác
+                Orders order = ordersService.getById(Integer.parseInt(originalOrderId)).orElse(null);
+                if (order != null) {
+                    // Hoàn tác stock cho các sản phẩm
+                    List<OrderDetail> orderDetails = order.getOrderItems();
+                    if (orderDetails != null) {
+                        for (OrderDetail detail : orderDetails) {
+                            // Hoàn tác tồn kho (trả lại số lượng đã trừ)
+                            try {
+                                bookService.increaseStock(detail.getBookId(), detail.getQuantity());
+                                System.out.println("Restored stock for book: " + detail.getBookId() + ", quantity: "
+                                        + detail.getQuantity());
+                            } catch (Exception e) {
+                                System.err.println("Error restoring stock: " + e.getMessage());
+                            }
+                        }
+                    }
+
+                    // Cập nhật trạng thái đơn hàng
+                    order.setPayment_status("Chưa thanh toán");
+                    order.setStatus("Đã hủy");
+                    ordersService.save(order);
+                }
+
                 redirectAttributes.addFlashAttribute("error", "Thanh toán MoMo thất bại: " + message);
                 return "redirect:/cart/checkout";
             }
@@ -186,11 +246,20 @@ public class PaymentController {
             String originalOrderId = extractOriginalOrderId(momoOrderId);
 
             if ("0".equals(resultCode)) {
-                // Cập nhật trạng thái đơn hàng
+                // Cập nhật trạng thái đơn hàng và payment status
                 Orders order = ordersService.getById(Integer.parseInt(originalOrderId)).orElse(null);
                 if (order != null) {
+                    order.setPayment_status("Đã thanh toán");
                     order.setStatus("Đã thanh toán");
                     ordersService.save(order);
+
+                    // Gửi email thanh toán thành công (từ webhook)
+                    try {
+                        emailService.sendPaymentSuccessEmail(order);
+                        emailService.sendInvoiceEmail(order);
+                    } catch (Exception e) {
+                        System.err.println("Failed to send payment success email from notify: " + e.getMessage());
+                    }
                 }
             }
 
@@ -225,14 +294,43 @@ public class PaymentController {
                 // Simulate successful payment
                 Orders order = ordersService.getById(Integer.parseInt(originalOrderId)).orElse(null);
                 if (order != null) {
+                    order.setPayment_status("Đã thanh toán");
                     order.setStatus("Đã thanh toán");
+                    ordersService.save(order);
+
+                    // Gửi email thanh toán thành công (simulate)
+                    try {
+                        emailService.sendPaymentSuccessEmail(order);
+                        emailService.sendInvoiceEmail(order);
+                    } catch (Exception e) {
+                        System.err.println("Failed to send payment success email from simulate: " + e.getMessage());
+                    }
+                }
+
+                return "redirect:/order/success/" + originalOrderId;
+            } else {
+                // Simulate failed payment - hoàn tác stock
+                Orders order = ordersService.getById(Integer.parseInt(originalOrderId)).orElse(null);
+                if (order != null) {
+                    // Hoàn tác stock cho các sản phẩm
+                    List<OrderDetail> orderDetails = order.getOrderItems();
+                    if (orderDetails != null) {
+                        for (OrderDetail detail : orderDetails) {
+                            try {
+                                bookService.increaseStock(detail.getBookId(), detail.getQuantity());
+                                System.out.println("Restored stock for book: " + detail.getBookId() + ", quantity: "
+                                        + detail.getQuantity());
+                            } catch (Exception e) {
+                                System.err.println("Error restoring stock: " + e.getMessage());
+                            }
+                        }
+                    }
+
+                    order.setPayment_status("Chưa thanh toán");
+                    order.setStatus("Đã hủy");
                     ordersService.save(order);
                 }
 
-                session.removeAttribute("cart");
-                return "redirect:/order/success/" + originalOrderId;
-            } else {
-                // Simulate failed payment
                 redirectAttributes.addFlashAttribute("error", "Thanh toán MoMo thất bại: " + message);
                 return "redirect:/cart/checkout";
             }

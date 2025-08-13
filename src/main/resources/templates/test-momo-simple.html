@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test MoMo Payment</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Test MoMo Payment - Simple</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <strong>Test theo docs MoMo:</strong><br>
+                            <a href="https://developers.momo.vn/v3/vi/docs/payment/onboarding/test-instructions/"
+                                target="_blank">
+                                https://developers.momo.vn/v3/vi/docs/payment/onboarding/test-instructions/
+                            </a>
+                        </div>
+
+                        <h6>Quick Test Links:</h6>
+                        <div class="d-grid gap-2">
+                            <a href="/payment/momo?orderId=1&amount=50000" class="btn btn-success">Test 50,000 VND</a>
+                            <a href="/payment/momo?orderId=2&amount=100000" class="btn btn-success">Test 100,000 VND</a>
+                            <a href="/payment/momo?orderId=3&amount=500000" class="btn btn-success">Test 500,000 VND</a>
+                        </div>
+
+                        <hr>
+                        <form action="/payment/momo" method="get">
+                            <div class="mb-3">
+                                <label for="orderId" class="form-label">Order ID:</label>
+                                <input type="number" class="form-control" id="orderId" name="orderId" value="123"
+                                    required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="amount" class="form-label">Amount (VND):</label>
+                                <input type="number" class="form-control" id="amount" name="amount" value="50000"
+                                    required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                Test MoMo Payment
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

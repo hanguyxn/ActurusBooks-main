@@ -1,8 +1,12 @@
 package com.example.bookstore.controller.admin;
 
 import com.example.bookstore.entity.Orders;
+import com.example.bookstore.entity.OrderDetail;
 import com.example.bookstore.enums.OrderStatus;
 import com.example.bookstore.service.OrdersService;
+import com.example.bookstore.service.OrderDetailService;
+import com.example.bookstore.service.InvoiceService;
+import com.example.bookstore.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -12,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.List;
 
 @Controller
 @RequestMapping("/admin/orders")
@@ -20,11 +25,35 @@ public class AdminOrderController {
     @Autowired
     private OrdersService ordersService;
 
+    @Autowired
+    private OrderDetailService orderDetailService;
+
+    @Autowired
+    private InvoiceService invoiceService;
+
+    @Autowired
+    private BookService bookService;
+
     @GetMapping
     public String listOrders(Model model) {
         model.addAttribute("orders", ordersService.getAll());
         model.addAttribute("orderStatuses", OrderStatus.values());
         return "admin/orders/orders";
+    }
+
+    @GetMapping("/detail/{orderId}")
+    public String orderDetail(@PathVariable Integer orderId, Model model) {
+        Optional<Orders> orderOpt = ordersService.getById(orderId);
+        if (orderOpt.isEmpty()) {
+            return "redirect:/admin/orders";
+        }
+
+        Orders order = orderOpt.get();
+        List<OrderDetail> orderDetails = orderDetailService.getByOrderId(orderId);
+
+        model.addAttribute("order", order);
+        model.addAttribute("orderDetails", orderDetails);
+        return "admin/orders/order-detail";
     }
 
     @GetMapping("/{id}")
@@ -92,6 +121,16 @@ public class AdminOrderController {
             Optional<Orders> orderOpt = ordersService.getById(id);
             if (orderOpt.isPresent()) {
                 Orders order = orderOpt.get();
+                String oldStatus = order.getStatus();
+
+                // Nếu đổi từ trạng thái khác sang "Cancelled", phục hồi stock
+                if (!"Cancelled".equals(oldStatus) && "Cancelled".equals(status)) {
+                    List<OrderDetail> orderDetails = orderDetailService.getByOrderId(id);
+                    for (OrderDetail detail : orderDetails) {
+                        bookService.increaseStock(detail.getBook().getBookId(), detail.getQuantity());
+                    }
+                }
+
                 order.setStatus(status);
                 ordersService.save(order);
 
@@ -118,6 +157,20 @@ public class AdminOrderController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> deleteOrder(@PathVariable Integer id) {
         try {
+            // Lấy thông tin đơn hàng trước khi xóa để phục hồi stock
+            Optional<Orders> orderOpt = ordersService.getById(id);
+            if (orderOpt.isPresent()) {
+                Orders order = orderOpt.get();
+
+                // Chỉ phục hồi stock nếu đơn hàng chưa bị hủy trước đó
+                if (!"Cancelled".equals(order.getStatus())) {
+                    List<OrderDetail> orderDetails = orderDetailService.getByOrderId(id);
+                    for (OrderDetail detail : orderDetails) {
+                        bookService.increaseStock(detail.getBook().getBookId(), detail.getQuantity());
+                    }
+                }
+            }
+
             ordersService.delete(id);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -128,6 +181,32 @@ public class AdminOrderController {
             response.put("success", false);
             response.put("message", "Lỗi xóa đơn hàng: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // Download invoice PDF for admin
+    @GetMapping("/invoice/{orderId}")
+    public ResponseEntity<byte[]> downloadInvoice(@PathVariable Integer orderId) {
+        try {
+            Optional<Orders> orderOpt = ordersService.getById(orderId);
+            if (orderOpt.isEmpty()) {
+                return ResponseEntity.status(404).build();
+            }
+
+            Orders order = orderOpt.get();
+
+            // Generate PDF invoice
+            byte[] invoiceBytes = invoiceService.generateInvoicePDF(order);
+            String filename = invoiceService.getInvoiceFilename(order);
+
+            return ResponseEntity.ok()
+                    .header("Content-Type", "application/pdf")
+                    .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                    .body(invoiceBytes);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
         }
     }
 }

@@ -1,10 +1,13 @@
 package com.example.bookstore.controller.customer;
 
-import com.example.bookstore.entity.CartItem;
 import com.example.bookstore.entity.Book;
+import com.example.bookstore.entity.CartItem;
 import com.example.bookstore.entity.Discount;
+import com.example.bookstore.entity.User;
+import com.example.bookstore.entity.UserAddress;
 import com.example.bookstore.repository.BookRepository;
 import com.example.bookstore.service.DiscountService;
+import com.example.bookstore.service.UserAddressService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -25,6 +28,9 @@ public class CartController {
 
     @Autowired
     private DiscountService discountService;
+
+    @Autowired
+    private UserAddressService userAddressService;
 
     @GetMapping("/view")
     public String viewCart(HttpSession session, Model model) {
@@ -47,14 +53,35 @@ public class CartController {
         if (bookOpt.isPresent()) {
             Book book = bookOpt.get();
 
+            // Kiểm tra tồn kho
+            if (book.getStock() <= 0) {
+                redirectAttributes.addFlashAttribute("error", "Sách này đã hết hàng!");
+                return "redirect:/product-detail/" + bookId;
+            }
+
             // Kiểm tra xem sách đã có trong giỏ hàng chưa
             Optional<CartItem> existingItem = cart.stream()
                     .filter(item -> item.getBookId().equals(bookId))
                     .findFirst();
 
+            int totalQuantityInCart = quantity;
+            if (existingItem.isPresent()) {
+                totalQuantityInCart += existingItem.get().getQuantity();
+            }
+
+            // Kiểm tra tổng số lượng trong giỏ có vượt quá tồn kho không
+            if (totalQuantityInCart > book.getStock()) {
+                redirectAttributes.addFlashAttribute("error",
+                        "Không đủ hàng tồn kho! Chỉ còn " + book.getStock() + " quyển. " +
+                                (existingItem.isPresent()
+                                        ? "Bạn đã có " + existingItem.get().getQuantity() + " quyển trong giỏ."
+                                        : ""));
+                return "redirect:/product-detail/" + bookId;
+            }
+
             if (existingItem.isPresent()) {
                 // Cập nhật số lượng
-                existingItem.get().setQuantity(existingItem.get().getQuantity() + quantity);
+                existingItem.get().setQuantity(totalQuantityInCart);
             } else {
                 // Thêm mới
                 CartItem newItem = new CartItem();
@@ -113,13 +140,46 @@ public class CartController {
         }
 
         double subtotal = cartItems.stream().mapToDouble(item -> item.getPrice() * item.getQuantity()).sum();
-        double shippingFee = 20000;
+        double shippingFee = 20000; // default standard shipping
+
+        // Kiểm tra có discount trong session không
+        String voucherCode = (String) session.getAttribute("voucherCode");
+        Double discountValue = (Double) session.getAttribute("discountValue");
+        Double discountAmount = (Double) session.getAttribute("discountAmount");
+
         double total = subtotal + shippingFee;
+        if (discountAmount != null) {
+            total -= discountAmount;
+        }
 
         model.addAttribute("cartItems", cartItems);
         model.addAttribute("subtotal", subtotal);
         model.addAttribute("shippingFee", shippingFee);
         model.addAttribute("total", total);
+
+        // Add discount info if exists
+        if (voucherCode != null && discountValue != null && discountAmount != null) {
+            model.addAttribute("voucherCode", voucherCode);
+            model.addAttribute("discountValue", discountValue);
+            model.addAttribute("discountAmount", discountAmount);
+        }
+
+        // Add user info for auto-fill
+        User currentUser = (User) session.getAttribute("user");
+        if (currentUser != null) {
+            model.addAttribute("userInfo", currentUser);
+
+            // Load user addresses for checkout
+            List<UserAddress> userAddresses = userAddressService.getAddressesByUserId(currentUser.getUser_id());
+            model.addAttribute("userAddresses", userAddresses);
+
+            // Get default address if exists
+            Optional<UserAddress> defaultAddress = userAddressService.getDefaultAddress(currentUser.getUser_id());
+            if (defaultAddress.isPresent()) {
+                model.addAttribute("defaultAddress", defaultAddress.get());
+            }
+        }
+
         return "checkout";
     }
 
@@ -189,5 +249,75 @@ public class CartController {
     public int getCartCount(HttpSession session) {
         List<CartItem> cart = getCartFromSession(session);
         return cart.stream().mapToInt(CartItem::getQuantity).sum();
+    }
+
+    // API AJAX để áp dụng mã giảm giá
+    @PostMapping("/apply-discount-ajax")
+    @ResponseBody
+    public java.util.Map<String, Object> applyDiscountAjax(@RequestParam String voucher, HttpSession session) {
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+
+        try {
+            List<CartItem> cartItems = getCartFromSession(session);
+            double subtotal = cartItems.stream().mapToDouble(item -> item.getPrice() * item.getQuantity()).sum();
+            double shippingFee = 20000;
+
+            // Validate voucher từ database
+            Discount discount = discountService.validateDiscount(voucher);
+
+            if (discount != null) {
+                double discountValue = discount.getValue();
+                double discountAmount = subtotal * discountValue / 100;
+                double total = subtotal - discountAmount + shippingFee;
+
+                // Lưu thông tin discount vào session
+                session.setAttribute("voucherCode", voucher);
+                session.setAttribute("discountValue", discountValue);
+                session.setAttribute("discountAmount", discountAmount);
+
+                response.put("success", true);
+                response.put("message", "Áp dụng mã giảm giá thành công!");
+                response.put("discountValue", discountValue);
+                response.put("discountAmount", discountAmount);
+                response.put("total", total);
+                response.put("voucherCode", voucher);
+            } else {
+                response.put("success", false);
+                response.put("message", "Mã giảm giá không hợp lệ hoặc đã hết hạn!");
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Lỗi hệ thống khi xử lý mã giảm giá!");
+        }
+
+        return response;
+    }
+
+    // API để remove mã giảm giá
+    @PostMapping("/remove-discount-ajax")
+    @ResponseBody
+    public java.util.Map<String, Object> removeDiscountAjax(HttpSession session) {
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+
+        try {
+            List<CartItem> cartItems = getCartFromSession(session);
+            double subtotal = cartItems.stream().mapToDouble(item -> item.getPrice() * item.getQuantity()).sum();
+            double shippingFee = 20000;
+            double total = subtotal + shippingFee;
+
+            // Xóa thông tin discount khỏi session
+            session.removeAttribute("voucherCode");
+            session.removeAttribute("discountValue");
+            session.removeAttribute("discountAmount");
+
+            response.put("success", true);
+            response.put("message", "Đã hủy mã giảm giá");
+            response.put("total", total);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Lỗi hệ thống!");
+        }
+
+        return response;
     }
 }

@@ -17,12 +17,12 @@
 
 <body>
     <div th:replace="~{fragments/navbar-customer :: navbar}"></div>
+
     <section class="products-list-section py-5" style="background:#f8f9fa;">
         <div class="container">
             <h2 class="fw-bold mb-4">Danh sách Sách</h2>
             <div class="row">
-                <!-- Sidebar bộ lọc (nếu muốn) -->
-                <!-- Thay thế phần bộ lọc trong sidebar -->
+                <!-- Sidebar bộ lọc -->
                 <div class="col-lg-3 mb-4">
                     <div class="card shadow-sm">
                         <div class="card-body">
@@ -52,7 +52,7 @@
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label fw-semibold">Giá</label>
+                                    <label class="form-label fw-semibold">Khoảng giá</label>
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="gia1">
                                         <label class="form-check-label" for="gia1">Dưới 50.000đ</label>
@@ -66,41 +66,105 @@
                                         <label class="form-check-label" for="gia3">Trên 100.000đ</label>
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-dark w-100">Lọc</button>
+                                <button type="submit" class="btn btn-primary w-100">Áp dụng</button>
                             </form>
                         </div>
                     </div>
                 </div>
-                <!-- Danh sách sách -->
+
+                <!-- Danh sách sản phẩm -->
                 <div class="col-lg-9">
-                    <div class="row g-4">
-                        <th:block th:each="book : ${books}">
-                            <div class="col-md-4 col-sm-6">
-                                <div class="product-card text-center position-relative h-100">
-                                    <div class="product-image">
-                                        <img th:src="@{${book.imageUrl}}" class="img-fluid" th:alt="${book.title}"
-                                            style="width:200px;height:200px;object-fit:cover;">
-                                        <span class="tag-badge new"
-                                            th:if="${#strings.contains(book.category, 'mới')}">Mới</span>
+                    <!-- Thông tin phân trang và sắp xếp -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <p class="mb-0">Hiển thị <span th:text="${#lists.size(books)}">0</span> của <span
+                                th:text="${totalItems}">0</span> sản phẩm</p>
+                        <div class="d-flex align-items-center">
+                            <label class="me-2">Sắp xếp:</label>
+                            <select class="form-select form-select-sm" style="width: auto;">
+                                <option>Mới nhất</option>
+                                <option>Giá thấp đến cao</option>
+                                <option>Giá cao đến thấp</option>
+                                <option>Tên A-Z</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Grid sản phẩm -->
+                    <div class="row">
+                        <div class="col-lg-4 col-md-6 mb-4" th:each="book : ${books}">
+                            <div class="card h-100 shadow-sm book-card">
+                                <div class="position-relative">
+                                    <img th:src="${book.imageUrl}" class="card-img-top" alt="Book Image"
+                                        style="height: 250px; object-fit: cover;">
+
+                                    <!-- Stock status badges -->
+                                    <span th:if="${book.stock == 0}"
+                                        class="badge bg-danger position-absolute top-0 start-0 m-2">Hết hàng</span>
+                                    <span th:if="${book.stock > 0 and book.stock < 5}"
+                                        class="badge bg-warning position-absolute top-0 start-0 m-2">Sắp hết hàng</span>
+
+                                    <!-- Wishlist button -->
+                                    <button
+                                        class="btn btn-light btn-sm position-absolute top-0 end-0 m-2 rounded-circle wishlist-btn"
+                                        onclick="toggleWishlist(this)" th:data-book-id="${book.bookId}">
+                                        <i class="bi bi-heart"></i>
+                                    </button>
+                                </div>
+                                <div class="card-body d-flex flex-column">
+                                    <p class="card-text text-muted small mb-1" th:text="${book.category}">Category</p>
+                                    <h6 class="card-title fw-semibold mb-2" th:text="${book.title}">Book Title</h6>
+                                    <p class="card-text small text-muted mb-3"
+                                        th:text="${#strings.abbreviate(book.description, 80)}">Description</p>
+                                    <div class="mt-auto">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="fw-bold text-primary fs-5"
+                                                th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT')} + '₫'">Price</span>
+                                            <small class="text-muted"
+                                                th:text="'Còn ' + ${book.stock} + ' quyển'">Stock</small>
+                                        </div>
+                                        <div class="d-grid gap-2">
+                                            <!-- Add to cart button - disabled if out of stock -->
+                                            <button th:if="${book.stock > 0}" class="btn btn-primary btn-sm"
+                                                onclick="addToCart(this)" th:data-book-id="${book.bookId}">
+                                                <i class="bi bi-cart-plus me-1"></i>Thêm vào giỏ
+                                            </button>
+                                            <button th:if="${book.stock == 0}" class="btn btn-secondary btn-sm"
+                                                disabled>
+                                                Hết hàng
+                                            </button>
+                                            <!-- View details button -->
+                                            <a th:href="@{'/product-detail/' + ${book.bookId}}"
+                                                class="btn btn-outline-dark btn-sm">Xem chi tiết</a>
+                                        </div>
                                     </div>
-                                    <h6 class="mt-3" th:text="${book.title}">Tên sách</h6>
-                                    <p class="text-muted"
-                                        th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT')} + 'đ'">
-                                    </p>
-                                    <a th:href="@{'/product-detail/' + ${book.bookId}}"
-                                        class="btn btn-outline-dark btn-sm mt-auto">Xem chi tiết</a>
                                 </div>
                             </div>
-                        </th:block>
+                        </div>
                     </div>
+
                     <!-- Phân trang -->
-                    <nav class="mt-5 d-flex justify-content-center">
-                        <ul class="pagination">
-                            <li class="page-item disabled"><a class="page-link" href="#">Trước</a></li>
-                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item"><a class="page-link" href="#">2</a></li>
-                            <li class="page-item"><a class="page-link" href="#">3</a></li>
-                            <li class="page-item"><a class="page-link" href="#">Sau</a></li>
+                    <nav aria-label="Page navigation" th:if="${totalPages > 1}">
+                        <ul class="pagination justify-content-center">
+                            <!-- Previous button -->
+                            <li class="page-item" th:classappend="${!hasPrevious ? 'disabled' : ''}">
+                                <a class="page-link" th:href="@{/product(page=${currentPage - 1})}"
+                                    aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+
+                            <!-- Page numbers -->
+                            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                th:classappend="${i == currentPage ? 'active' : ''}">
+                                <a class="page-link" th:href="@{/product(page=${i})}" th:text="${i + 1}">1</a>
+                            </li>
+
+                            <!-- Next button -->
+                            <li class="page-item" th:classappend="${!hasNext ? 'disabled' : ''}">
+                                <a class="page-link" th:href="@{/product(page=${currentPage + 1})}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
                         </ul>
                     </nav>
                 </div>
@@ -108,78 +172,104 @@
         </div>
     </section>
 
-    <footer class="footer py-5">
-        <div class="container">
-            <div class="row g-4 text-dark">
-                <!-- Column 1 -->
-                <div class="col-md-2">
-                    <h5 class="fw-bold">Thể Loại</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#">Truyện tranh</a></li>
-                        <li><a href="#">Văn học</a></li>
-                        <li><a href="#">Kinh tế</a></li>
-                        <li><a href="#">Thiếu nhi</a></li>
-                        <li><a href="#">Kỹ năng sống</a></li>
-                    </ul>
-                </div>
-                <!-- Column 2 -->
-                <div class="col-md-2">
-                    <h5 class="fw-bold">Tài Khoản</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="register">Đăng ký</a></li>
-                        <li><a href="login">Đăng nhập</a></li>
-                        <li><a href="#">Giỏ hàng</a></li>
-                        <li><a href="#">Yêu thích</a></li>
-                        <li><a href="#">So sánh sách</a></li>
-                    </ul>
-                </div>
-                <!-- Column 3 -->
-                <div class="col-md-2">
-                    <h5 class="fw-bold">Về Chúng Tôi</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#">Giới thiệu</a></li>
-                        <li><a href="#">Liên hệ</a></li>
-                        <li><a href="#">Hệ thống nhà sách</a></li>
-                        <li><a href="#">Blog</a></li>
-                        <li><a href="#">FAQ</a></li>
-                    </ul>
-                </div>
-                <!-- Column 4 -->
-                <div class="col-md-2">
-                    <h5 class="fw-bold">Dịch Vụ</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#">Lịch sử đơn hàng</a></li>
-                        <li><a href="#">Hỗ trợ khách hàng</a></li>
-                        <li><a href="#">Điều khoản</a></li>
-                        <li><a href="#">Đổi trả</a></li>
-                        <li><a href="#">Giao hàng</a></li>
-                    </ul>
-                </div>
-                <!-- Column 5 - Newsletter -->
-                <div class="col-md-4">
-                    <div class="newsletter-box text-center">
-                        <h5 class="fw-bold">Đăng Ký Nhận Tin</h5>
-                        <p>Nhận ưu đãi <strong>10%</strong> cho đơn hàng đầu tiên khi đăng ký email.</p>
-                        <form class="newsletter-form">
-                            <input type="email" class="form-control" placeholder="Nhập email của bạn..." required>
-                            <button type="submit" class="newsletter-btn">
-                                <i class="bi bi-arrow-right"></i>
-                            </button>
-                        </form>
-                        <div class="payment-icons mt-3">
-                            <i class="bi bi-paypal"></i>
-                            <i class="bi bi-cc-visa"></i>
-                            <i class="bi bi-credit-card"></i>
-                            <i class="bi bi-amazon"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <!-- Footer -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JavaScript functions -->
+    <script>
+        function addToCart(button) {
+            const bookId = button.getAttribute('data-book-id');
+            const quantity = 1;
+
+            fetch('/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `bookId=${bookId}&quantity=${quantity}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        alert('Đã thêm sách vào giỏ hàng!');
+                        // Update cart count if exists
+                        const cartCount = document.querySelector('.cart-count');
+                        if (cartCount) {
+                            cartCount.textContent = data.cartItemCount;
+                        }
+                    } else {
+                        alert(data.message || 'Có lỗi xảy ra khi thêm vào giỏ hàng');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra khi thêm vào giỏ hàng');
+                });
+        }
+
+        function toggleWishlist(button) {
+            const bookId = button.getAttribute('data-book-id');
+            const icon = button.querySelector('i');
+
+            fetch('/wishlist/toggle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `bookId=${bookId}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.action === 'added') {
+                            icon.classList.remove('bi-heart');
+                            icon.classList.add('bi-heart-fill');
+                            button.classList.remove('btn-light');
+                            button.classList.add('btn-danger');
+                        } else {
+                            icon.classList.remove('bi-heart-fill');
+                            icon.classList.add('bi-heart');
+                            button.classList.remove('btn-danger');
+                            button.classList.add('btn-light');
+                        }
+
+                        // Show message (optional)
+                        // alert(data.message);
+                    } else {
+                        alert(data.message || 'Có lỗi xảy ra');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra');
+                });
+        }
+
+        // Initialize wishlist status on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            const wishlistButtons = document.querySelectorAll('.wishlist-btn');
+            wishlistButtons.forEach(button => {
+                const bookId = button.getAttribute('data-book-id');
+
+                fetch(`/wishlist/check/${bookId}`)
+                    .then(response => response.json())
+                    .then(inWishlist => {
+                        const icon = button.querySelector('i');
+                        if (inWishlist) {
+                            icon.classList.remove('bi-heart');
+                            icon.classList.add('bi-heart-fill');
+                            button.classList.remove('btn-light');
+                            button.classList.add('btn-danger');
+                        }
+                    })
+                    .catch(error => console.error('Error checking wishlist status:', error));
+            });
+        });
+    </script>
 </body>
 
 </html>

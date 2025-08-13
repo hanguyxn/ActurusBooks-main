@@ -92,6 +92,10 @@
             color: #dc3545;
         }
 
+        .btn-success {
+            color: #28a745;
+        }
+
         .fade-in {
             animation: fadeIn 0.5s ease-in;
         }
@@ -170,6 +174,7 @@
                             <th scope="col" style="font-weight: 600;">Ngày đặt</th>
                             <th scope="col" style="font-weight: 600;">Tổng tiền</th>
                             <th scope="col" style="font-weight: 600;">Trạng thái</th>
+                            <th scope="col" style="font-weight: 600;">Thanh toán</th>
                             <th scope="col" style="font-weight: 600; text-align: center;">Thao tác</th>
                         </tr>
                     </thead>
@@ -187,18 +192,29 @@
                                 <span class="status-badge" th:classappend="'status-' + ${order.status}"
                                     th:text="${order.status}"></span>
                             </td>
+                            <td>
+                                <span class="badge"
+                                    th:classappend="${order.payment_status == 'Đã thanh toán'} ? 'bg-success' : 
+                                                    (${order.payment_status == 'Hoàn tiền'} ? 'bg-warning' : 'bg-secondary')"
+                                    th:text="${order.payment_status}"></span>
+                            </td>
                             <td style="text-align: center;">
-                                <button class="action-btn btn-view" th:data-order-id="${order.order_id}"
-                                    onclick="viewOrderDetails(this.dataset.orderId)" title="Xem chi tiết">
+                                <a class="action-btn btn-view" th:href="@{'/admin/orders/detail/' + ${order.order_id}}"
+                                    title="Xem chi tiết">
                                     <i class="bi bi-eye-fill"></i>
-                                </button>
+                                </a>
                                 <button class="action-btn btn-edit" th:data-order-id="${order.order_id}"
                                     th:data-status="${order.status}"
                                     onclick="editOrderStatus(this.dataset.orderId, this.dataset.status)"
                                     title="Cập nhật trạng thái">
                                     <i class="bi bi-pencil-square"></i>
                                 </button>
-
+                                <!-- Download Invoice button -->
+                                <a class="action-btn btn-success"
+                                    th:href="@{'/admin/orders/invoice/' + ${order.order_id}}" target="_blank"
+                                    title="Tải hóa đơn">
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                </a>
                             </td>
                         </tr>
                     </tbody>

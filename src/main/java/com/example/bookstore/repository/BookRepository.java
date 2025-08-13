@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface BookRepository extends JpaRepository<Book, Integer> {
     List<Book> findTop4ByOrderByBookIdDesc();
+
+    List<Book> findTop8ByOrderByBookIdDesc();
 }

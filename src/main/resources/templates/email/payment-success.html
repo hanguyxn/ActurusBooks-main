@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán thành công - ActurusBooks</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .email-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #28a745;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #28a745;
+            margin: 0;
+        }
+
+        .success-icon {
+            color: #28a745;
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .order-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .order-details {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .order-details table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .order-details th {
+            background: #28a745;
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .order-details td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .total-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: right;
+        }
+
+        .total-amount {
+            font-size: 20px;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .payment-success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid #c3e6cb;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .contact-info {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .invoice-section {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="success-icon">✓</div>
+            <h1>ActurusBooks</h1>
+            <h2>Thanh toán thành công!</h2>
+        </div>
+
+        <div class="payment-success">
+            <h3>🎉 Thanh toán đã được xử lý thành công!</h3>
+            <p>Cảm ơn bạn đã thanh toán qua MoMo. Đơn hàng của bạn sẽ được xử lý ngay lập tức.</p>
+        </div>
+
+        <p>Xin chào <strong th:text="${customerName}"></strong>,</p>
+
+        <p>Chúng tôi xác nhận rằng khoản thanh toán cho đơn hàng #<span th:text="${order.order_id}"></span> đã được xử
+            lý thành công qua MoMo.</p>
+
+        <div class="order-info">
+            <h3>Thông tin thanh toán</h3>
+            <p><strong>Mã đơn hàng:</strong> #<span th:text="${order.order_id}"></span></p>
+            <p><strong>Ngày thanh toán:</strong> <span th:text="${order.order_date.format(dateFormatter)}"></span></p>
+            <p><strong>Phương thức thanh toán:</strong> MoMo</p>
+            <p><strong>Trạng thái:</strong> <span style="color: #28a745; font-weight: bold;">✓ Đã thanh toán</span></p>
+            <p><strong>Số tiền:</strong> <span class="total-amount"
+                    th:text="${#numbers.formatInteger(order.total_amount, 0, 'COMMA')} + 'đ'"></span></p>
+        </div>
+
+        <div class="contact-info">
+            <h3>Thông tin giao hàng</h3>
+            <p><strong>Họ tên:</strong> <span th:text="${customerName}"></span></p>
+            <p><strong>Số điện thoại:</strong> <span th:text="${order.phone}"></span></p>
+            <p><strong>Địa chỉ:</strong> <span th:text="${order.address}"></span></p>
+            <p><strong>Phương thức vận chuyển:</strong> <span th:text="${order.shipping_method}"></span></p>
+        </div>
+
+        <div class="order-details">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th>Số lượng</th>
+                        <th>Đơn giá</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="detail : ${orderDetails}">
+                        <td th:text="'Sách ID: ' + ${detail.bookId}"></td>
+                        <td th:text="${detail.quantity}"></td>
+                        <td th:text="${#numbers.formatInteger(detail.price, 0, 'COMMA')} + 'đ'"></td>
+                        <td th:text="${#numbers.formatInteger(detail.quantity * detail.price, 0, 'COMMA')} + 'đ'"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="total-section">
+            <p><strong>Tạm tính:</strong> <span
+                    th:text="${#numbers.formatInteger(order.subtotal, 0, 'COMMA')} + 'đ'"></span></p>
+            <p th:if="${order.discount > 0}"><strong>Giảm giá:</strong> -<span
+                    th:text="${#numbers.formatInteger(order.discount, 0, 'COMMA')} + 'đ'"></span></p>
+            <p><strong>Phí vận chuyển:</strong> <span
+                    th:text="${#numbers.formatInteger(order.shipping_fee, 0, 'COMMA')} + 'đ'"></span></p>
+            <hr>
+            <p class="total-amount"><strong>Đã thanh toán:</strong> <span
+                    th:text="${#numbers.formatInteger(order.total_amount, 0, 'COMMA')} + 'đ'"></span></p>
+        </div>
+
+        <div class="invoice-section">
+            <h3>📄 Hóa đơn điện tử</h3>
+            <p>Hóa đơn chi tiết cho đơn hàng này đã được đính kèm trong email này. Bạn có thể in hoặc lưu để làm chứng
+                từ thanh toán.</p>
+        </div>
+
+        <div class="contact-info">
+            <h3>Quy trình tiếp theo</h3>
+            <p>• ✅ Thanh toán đã hoàn tất</p>
+            <p>• 📦 Đơn hàng đang được chuẩn bị</p>
+            <p>• 🚚 Giao hàng trong vòng 1-2 ngày làm việc</p>
+            <p>• 📧 Bạn sẽ nhận được thông báo khi hàng được giao</p>
+        </div>
+
+        <div class="footer">
+            <p>Nếu bạn có bất kỳ câu hỏi nào về đơn hàng, vui lòng liên hệ:</p>
+            <p><strong>Email hỗ trợ:</strong> <span th:text="${supportEmail}"></span></p>
+            <p><strong>Hotline:</strong> 1900-xxxx</p>
+            <br>
+            <p>Cảm ơn bạn đã tin tưởng và mua sắm tại ActurusBooks!</p>
+            <p><em>ActurusBooks - Nơi tri thức hội tụ</em></p>
+        </div>
+    </div>
+</body>
+
+</html>

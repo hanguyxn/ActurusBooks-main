@@ -50,10 +50,39 @@ public class AuthController {
 
     @PostMapping("/register")
     public String register(@ModelAttribute User user, Model model) {
-        user.setRole("customer");
-        userService.register(user);
-        model.addAttribute("success", "Đăng ký thành công! Đăng nhập ngay.");
-        return "customer/auth/login";
+        try {
+            // Set default role
+            user.setRole("customer");
+
+            // Attempt to register user
+            userService.register(user);
+
+            // Success - redirect to login with success message
+            model.addAttribute("success", "Đăng ký thành công! Vui lòng đăng nhập.");
+            return "customer/auth/login";
+
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            // Handle database constraint violations
+            String errorMessage = e.getMessage();
+
+            if (errorMessage.contains("email") || errorMessage.contains("Email")) {
+                model.addAttribute("error", "Email này đã được sử dụng. Vui lòng chọn email khác.");
+            } else if (errorMessage.contains("username") || errorMessage.contains("Tên đăng nhập")) {
+                model.addAttribute("error", "Tên đăng nhập này đã được sử dụng. Vui lòng chọn tên khác.");
+            } else {
+                model.addAttribute("error", "Thông tin đăng ký đã tồn tại. Vui lòng kiểm tra lại.");
+            }
+
+            // Return to register form with error
+            model.addAttribute("user", user);
+            return "customer/auth/register";
+
+        } catch (Exception e) {
+            // Handle any other unexpected errors
+            model.addAttribute("error", "Có lỗi xảy ra trong quá trình đăng ký. Vui lòng thử lại.");
+            model.addAttribute("user", user);
+            return "customer/auth/register";
+        }
     }
 
     @GetMapping("/logout")

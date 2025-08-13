@@ -66,6 +66,7 @@
                                             <th>Ngày đặt</th>
                                             <th>Tổng tiền</th>
                                             <th>Trạng thái</th>
+                                            <th>Thanh toán</th>
                                             <th>Thao tác</th>
                                         </tr>
                                     </thead>
@@ -88,6 +89,12 @@
                                                                     (${order.status == 'Đã giao'} ? 'bg-success' : 
                                                                     (${order.status == 'Đã hủy'} ? 'bg-danger' : 'bg-secondary'))))"
                                                     th:text="${order.status}"></span>
+                                            </td>
+                                            <td>
+                                                <span class="badge"
+                                                    th:classappend="${order.payment_status == 'Đã thanh toán'} ? 'bg-success' : 
+                                                                    (${order.payment_status == 'Hoàn tiền'} ? 'bg-warning' : 'bg-secondary')"
+                                                    th:text="${order.payment_status}"></span>
                                             </td>
                                             <td>
                                                 <a th:href="@{/user/orders/detail/{id}(id=${order.order_id})}"

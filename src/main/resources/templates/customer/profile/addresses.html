@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý địa chỉ - ActurusBooks</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link th:href="@{/css/index.css}" rel="stylesheet">
+    <style>
+        .address-card {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .address-card:hover {
+            border-color: #0d6efd;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .address-card.default {
+            border-color: #28a745;
+            background-color: #f8fff9;
+        }
+
+        .default-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #28a745;
+            color: white;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .add-address-form {
+            display: none;
+            border: 2px solid #0d6efd;
+            border-radius: 10px;
+            padding: 20px;
+            background-color: #f8f9ff;
+        }
+
+        .select-dropdown {
+            position: relative;
+        }
+
+        .dropdown-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .dropdown-item-custom {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .dropdown-item-custom:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <div th:replace="~{fragments/navbar-customer}"></div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a th:href="@{/}">Trang chủ</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/user/dashboard}">Tài khoản</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Quản lý địa chỉ</li>
+                    </ol>
+                </nav>
+
+                <!-- Page Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fw-bold">
+                        <i class="fas fa-map-marker-alt me-2"></i>Quản lý địa chỉ
+                    </h2>
+                    <button class="btn btn-primary" onclick="toggleAddAddressForm()">
+                        <i class="fas fa-plus me-2"></i>Thêm địa chỉ mới
+                    </button>
+                </div>
+
+                <!-- Flash Messages -->
+                <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <span th:text="${message}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Add Address Form -->
+                <div id="addAddressForm" class="add-address-form mb-4">
+                    <h5 class="mb-3">Thêm địa chỉ mới</h5>
+                    <form id="newAddressForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="fullName" class="form-label">Họ và tên *</label>
+                                <input type="text" class="form-control" id="fullName" name="fullName"
+                                    th:value="${user.full_name}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Số điện thoại *</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" th:value="${user.phone}"
+                                    required>
+                            </div>
+                        </div>
+
+                        <!-- Chọn tỉnh/thành phố -->
+                        <div class="mb-3">
+                            <label for="provinceSelect" class="form-label">Tỉnh/Thành phố *</label>
+                            <div class="select-dropdown">
+                                <input type="text" class="form-control" id="provinceSelect"
+                                    placeholder="Tìm kiếm tỉnh/thành phố..." autocomplete="off" required>
+                                <div class="dropdown-results" id="provinceResults"></div>
+                                <input type="hidden" id="provinceCode" name="provinceCode">
+                                <input type="hidden" id="provinceName" name="provinceName">
+                            </div>
+                        </div>
+
+                        <!-- Chọn phường/xã -->
+                        <div class="mb-3">
+                            <label for="wardSelect" class="form-label">Phường/Xã *</label>
+                            <div class="select-dropdown">
+                                <input type="text" class="form-control" id="wardSelect" placeholder="Chọn tỉnh trước..."
+                                    disabled autocomplete="off" required>
+                                <div class="dropdown-results" id="wardResults"></div>
+                                <input type="hidden" id="wardCode" name="wardCode">
+                                <input type="hidden" id="wardName" name="wardName">
+                            </div>
+                        </div>
+
+                        <!-- Địa chỉ cụ thể -->
+                        <div class="mb-3">
+                            <label for="streetAddress" class="form-label">Số nhà, tên đường *</label>
+                            <input type="text" class="form-control" id="streetAddress" name="streetAddress"
+                                placeholder="Ví dụ: 123 Nguyễn Văn A" required>
+                        </div>
+
+                        <!-- Checkbox đặt làm mặc định -->
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="isDefault" name="isDefault"
+                                    value="true">
+                                <label class="form-check-label" for="isDefault">
+                                    Đặt làm địa chỉ mặc định
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Lưu địa chỉ
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="toggleAddAddressForm()">
+                                <i class="fas fa-times me-2"></i>Hủy
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Address List -->
+                <div class="row" id="addressList">
+                    <div th:if="${addresses.isEmpty()}" class="col-12">
+                        <div class="text-center py-5">
+                            <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Chưa có địa chỉ nào</h5>
+                            <p class="text-muted">Thêm địa chỉ để việc đặt hàng trở nên dễ dàng hơn</p>
+                        </div>
+                    </div>
+
+                    <div th:each="address : ${addresses}" class="col-md-6 col-lg-4 mb-4">
+                        <div class="address-card p-3" th:classappend="${address.isDefault} ? 'default' : ''">
+                            <div th:if="${address.isDefault}" class="default-badge">Mặc định</div>
+
+                            <h6 class="fw-bold mb-2" th:text="${address.fullName}">Tên người nhận</h6>
+                            <p class="text-muted mb-1">
+                                <i class="fas fa-phone me-2"></i>
+                                <span th:text="${address.phone}">Số điện thoại</span>
+                            </p>
+                            <p class="text-muted mb-3">
+                                <i class="fas fa-map-marker-alt me-2"></i>
+                                <span th:text="${address.fullAddress}">Địa chỉ đầy đủ</span>
+                            </p>
+
+                            <div class="d-flex gap-2">
+                                <button th:unless="${address.isDefault}" class="btn btn-outline-success btn-sm"
+                                    th:onclick="'setAsDefault(' + ${address.address_id} + ')'">
+                                    <i class="fas fa-star me-1"></i>Đặt mặc định
+                                </button>
+
+                                <button class="btn btn-outline-danger btn-sm"
+                                    th:onclick="'deleteAddress(' + ${address.address_id} + ')'">
+                                    <i class="fas fa-trash me-1"></i>Xóa
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div th:replace="~{fragments/footer}"></div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let provinces = [];
+        let wards = [];
+
+        // Load provinces on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            loadProvinces();
+        });
+
+        // Load all provinces
+        async function loadProvinces() {
+            try {
+                const response = await fetch('/api/address/provinces');
+                provinces = await response.json();
+            } catch (error) {
+                console.error('Error loading provinces:', error);
+            }
+        }
+
+        // Load wards for selected province
+        async function loadWards(provinceCode) {
+            try {
+                const response = await fetch(`/api/address/wards?provinceCode=${provinceCode}`);
+                wards = await response.json();
+
+                // Reset ward selection
+                document.getElementById('wardSelect').value = '';
+                document.getElementById('wardSelect').placeholder = 'Tìm kiếm phường/xã...';
+                document.getElementById('wardSelect').disabled = false;
+                document.getElementById('wardCode').value = '';
+                document.getElementById('wardName').value = '';
+
+            } catch (error) {
+                console.error('Error loading wards:', error);
+            }
+        }
+
+        // Province search
+        document.getElementById('provinceSelect').addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const results = document.getElementById('provinceResults');
+
+            if (searchTerm.length < 2) {
+                results.style.display = 'none';
+                return;
+            }
+
+            const filtered = provinces.filter(province =>
+                province.name.toLowerCase().includes(searchTerm)
+            );
+
+            results.innerHTML = filtered.map(province =>
+                `<div class="dropdown-item-custom" onclick="selectProvince('${province.province_code}', '${province.name}')">
+                    ${province.name}
+                </div>`
+            ).join('');
+
+            results.style.display = filtered.length > 0 ? 'block' : 'none';
+        });
+
+        // Ward search
+        document.getElementById('wardSelect').addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const results = document.getElementById('wardResults');
+
+            if (searchTerm.length < 2 || wards.length === 0) {
+                results.style.display = 'none';
+                return;
+            }
+
+            const filtered = wards.filter(ward =>
+                ward.ward_name.toLowerCase().includes(searchTerm)
+            );
+
+            results.innerHTML = filtered.map(ward =>
+                `<div class="dropdown-item-custom" onclick="selectWard('${ward.ward_code}', '${ward.ward_name}')">
+                    ${ward.ward_name}
+                </div>`
+            ).join('');
+
+            results.style.display = filtered.length > 0 ? 'block' : 'none';
+        });
+
+        // Select province
+        function selectProvince(code, name) {
+            document.getElementById('provinceSelect').value = name;
+            document.getElementById('provinceCode').value = code;
+            document.getElementById('provinceName').value = name;
+            document.getElementById('provinceResults').style.display = 'none';
+
+            // Load wards for this province
+            loadWards(code);
+        }
+
+        // Select ward
+        function selectWard(code, name) {
+            document.getElementById('wardSelect').value = name;
+            document.getElementById('wardCode').value = code;
+            document.getElementById('wardName').value = name;
+            document.getElementById('wardResults').style.display = 'none';
+        }
+
+        // Hide dropdowns when clicking outside
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.select-dropdown')) {
+                document.querySelectorAll('.dropdown-results').forEach(el => {
+                    el.style.display = 'none';
+                });
+            }
+        });
+
+        // Toggle add address form
+        function toggleAddAddressForm() {
+            const form = document.getElementById('addAddressForm');
+            const isVisible = form.style.display !== 'none';
+
+            if (isVisible) {
+                form.style.display = 'none';
+                resetForm();
+            } else {
+                form.style.display = 'block';
+            }
+        }
+
+        // Reset form
+        function resetForm() {
+            document.getElementById('newAddressForm').reset();
+            document.getElementById('provinceCode').value = '';
+            document.getElementById('provinceName').value = '';
+            document.getElementById('wardCode').value = '';
+            document.getElementById('wardName').value = '';
+            document.getElementById('wardSelect').disabled = true;
+            document.getElementById('wardSelect').placeholder = 'Chọn tỉnh trước...';
+        }
+
+        // Submit new address
+        document.getElementById('newAddressForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const formData = {
+                fullName: document.getElementById('fullName').value,
+                phone: document.getElementById('phone').value,
+                provinceCode: document.getElementById('provinceCode').value,
+                provinceName: document.getElementById('provinceName').value,
+                wardCode: document.getElementById('wardCode').value,
+                wardName: document.getElementById('wardName').value,
+                streetAddress: document.getElementById('streetAddress').value,
+                isDefault: document.getElementById('isDefault').checked
+            };
+
+            try {
+                const response = await fetch('/api/address/user-addresses', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    location.reload(); // Reload page to show new address
+                } else {
+                    alert('Lỗi: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi thêm địa chỉ');
+            }
+        });
+
+        // Set address as default
+        function setAsDefault(addressId) {
+            if (confirm('Đặt địa chỉ này làm mặc định?')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/user/addresses/${addressId}/set-default`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        // Delete address
+        function deleteAddress(addressId) {
+            if (confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/user/addresses/${addressId}/delete`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -41,48 +41,81 @@
         </div>
     </section>
 
-    <section class="new-arrivals py-5">
+    <!-- Section sách yêu thích (nếu có) -->
+    <section class="wishlist-section py-5" th:if="${hasWishlist}">
         <div class="container">
             <div class="text-center mb-5">
-                <h2 class="fw-bold">Sách Mới Về</h2>
+                <h2 class="fw-bold">Sách Yêu Thích</h2>
             </div>
 
-            <div class="d-flex align-items-center justify-content-between">
-                <!-- <button class="arrow-btn prev-btn"><i class="bi bi-chevron-left"></i></button> -->
-
-                <div class="row g-4">
-                    <th:block th:each="book, iterStat : ${newBooks}">
-                        <div class="col-md-3 col-sm-6">
-                            <div class="product-card text-center">
-                                <div class="product-image position-relative"
-                                    th:classappend="' pro' + ${iterStat.index + 1}">
-                                    <a th:href="@{'/product-detail/' + ${book.bookId}}">
-                                        <img th:src="@{${book.imageUrl}}" class="img-fluid" th:alt="${book.title}"
-                                            style="height:320px;object-fit:cover;">
-                                    </a>
-                                    <span class="tag-badge new"
-                                        th:if="${book.category != null and #strings.contains(book.category, 'mới')}">Mới</span>
-                                </div>
-                                <h6 class="mt-3 mb-1" th:text="${book.title}">Tên sách</h6>
-                                <p class="text-muted">
-                                    <span
-                                        th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                                </p>
+            <div class="row g-4">
+                <th:block th:each="book, iterStat : ${wishlistBooks}">
+                    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                        <div class="product-card text-center">
+                            <div class="product-image position-relative">
+                                <a th:href="@{'/product-detail/' + ${book.bookId}}">
+                                    <img th:src="@{${book.imageUrl}}" class="img-fluid" th:alt="${book.title}"
+                                        style="height:320px;object-fit:cover;">
+                                </a>
+                                <!-- Stock status badges -->
+                                <span class="tag-badge" style="background-color: #dc3545; color: white;"
+                                    th:if="${book.stock == 0}">Hết hàng</span>
+                                <span class="tag-badge" style="background-color: #fd7e14; color: white;"
+                                    th:if="${book.stock > 0 and book.stock < 5}">Sắp hết hàng</span>
+                                <!-- Wishlist badge -->
+                                <span class="tag-badge" style="background-color: #e91e63; color: white;">❤️ Yêu
+                                    thích</span>
                             </div>
+                            <h6 class="mt-3 mb-1" th:text="${book.title}">Tên sách</h6>
+                            <p class="text-muted">
+                                <span
+                                    th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                            </p>
                         </div>
-                    </th:block>
-                </div>
+                    </div>
+                </th:block>
+            </div>
+        </div>
+    </section>
 
-                <!-- <button class="arrow-btn next-btn"><i class="bi bi-chevron-right"></i></button> -->
+    <!-- Section sách của cửa hàng -->
+    <section class="store-books-section py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold">Sách Của Cửa Hàng</h2>
             </div>
 
+            <div class="row g-4">
+                <th:block th:each="book, iterStat : ${storeBooks}">
+                    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                        <div class="product-card text-center">
+                            <div class="product-image position-relative">
+                                <a th:href="@{'/product-detail/' + ${book.bookId}}">
+                                    <img th:src="@{${book.imageUrl}}" class="img-fluid" th:alt="${book.title}"
+                                        style="height:320px;object-fit:cover;">
+                                </a>
+                                <!-- Stock status badges -->
+                                <span class="tag-badge" style="background-color: #dc3545; color: white;"
+                                    th:if="${book.stock == 0}">Hết hàng</span>
+                                <span class="tag-badge" style="background-color: #fd7e14; color: white;"
+                                    th:if="${book.stock > 0 and book.stock < 5}">Sắp hết hàng</span>
+                                <span class="tag-badge new"
+                                    th:if="${book.stock >= 5 and book.category != null and #strings.contains(book.category, 'mới')}">Mới</span>
+                            </div>
+                            <h6 class="mt-3 mb-1" th:text="${book.title}">Tên sách</h6>
+                            <p class="text-muted">
+                                <span
+                                    th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                            </p>
+                        </div>
+                    </div>
+                </th:block>
+            </div>
 
-            <nav class="mt-5 d-flex justify-content-center">
-                <ul class="pagination dots">
-                    <li class="page-item active"><a class="page-link" href="#"></a></li>
-                    <li class="page-item"><a class="page-link" href="#"></a></li>
-                </ul>
-            </nav>
+            <!-- Nút Xem tất cả -->
+            <div class="text-center mt-4">
+                <a href="/product" class="btn btn-dark px-4 py-2">Xem tất cả sản phẩm</a>
+            </div>
         </div>
     </section>
     <section class="promo-section py-5 d-flex justify-content-center">

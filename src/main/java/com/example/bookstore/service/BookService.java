@@ -4,6 +4,8 @@ import com.example.bookstore.dto.BookDTO;
 import com.example.bookstore.entity.Book;
 import com.example.bookstore.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +20,11 @@ public class BookService {
         return repo.findAll().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    public Page<BookDTO> findAll(Pageable pageable) {
+        Page<Book> bookPage = repo.findAll(pageable);
+        return bookPage.map(this::convertToDTO);
     }
 
     public BookDTO save(BookDTO bookDTO) {
@@ -61,5 +68,36 @@ public class BookService {
         book.setCategory(bookDTO.getCategory());
         book.setImageUrl(bookDTO.getImageUrl());
         return book;
+    }
+
+    // Stock management methods
+    public boolean hasStock(Integer bookId, Integer quantity) {
+        Book book = repo.findById(bookId).orElse(null);
+        return book != null && book.getStock() >= quantity;
+    }
+
+    public void reduceStock(Integer bookId, Integer quantity) {
+        Book book = repo.findById(bookId)
+                .orElseThrow(() -> new IllegalArgumentException("Sách với ID " + bookId + " không tồn tại"));
+
+        if (book.getStock() < quantity) {
+            throw new IllegalArgumentException("Không đủ hàng tồn kho. Chỉ còn " + book.getStock() + " quyển");
+        }
+
+        book.setStock(book.getStock() - quantity);
+        repo.save(book);
+    }
+
+    public void increaseStock(Integer bookId, Integer quantity) {
+        Book book = repo.findById(bookId)
+                .orElseThrow(() -> new IllegalArgumentException("Sách với ID " + bookId + " không tồn tại"));
+
+        book.setStock(book.getStock() + quantity);
+        repo.save(book);
+    }
+
+    public Book getBookEntity(Integer bookId) {
+        return repo.findById(bookId)
+                .orElseThrow(() -> new IllegalArgumentException("Sách với ID " + bookId + " không tồn tại"));
     }
 }

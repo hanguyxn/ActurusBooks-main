@@ -36,7 +36,11 @@
                     <div class="mb-3">
                         <span class="fs-4 fw-bold text-danger"
                             th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                        <span class="badge bg-success ms-2" th:if="${book.stock > 0}">Còn hàng</span>
+                        <!-- Enhanced stock status display -->
+                        <span class="badge bg-success ms-2" th:if="${book.stock > 5}">Còn hàng</span>
+                        <span class="badge bg-warning text-dark ms-2" th:if="${book.stock > 0 and book.stock <= 5}">
+                            Sắp hết hàng (còn <span th:text="${book.stock}"></span> quyển)
+                        </span>
                         <span class="badge bg-danger ms-2" th:if="${book.stock == 0}">Hết hàng</span>
                     </div>
                     <p class="mb-4" th:text="${book.description}">Mô tả sách</p>

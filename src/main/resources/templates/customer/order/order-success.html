@@ -53,6 +53,11 @@
                                     <p><strong>Địa chỉ:</strong> <span th:text="${order.address}"></span></p>
                                     <p><strong>Phương thức thanh toán:</strong> <span
                                             th:text="${order.payment_method}"></span></p>
+                                    <p><strong>Trạng thái thanh toán:</strong>
+                                        <span
+                                            th:class="${order.payment_status == 'Đã thanh toán'} ? 'badge bg-success' : (${order.payment_status == 'Hoàn tiền'} ? 'badge bg-warning' : 'badge bg-secondary')"
+                                            th:text="${order.payment_status}"></span>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -93,6 +98,9 @@
 
                     <!-- Actions -->
                     <div class="text-center">
+                        <a th:href="@{'/order/detail/' + ${order.order_id}}" class="btn btn-success me-3">
+                            <i class="bi bi-file-text"></i> Xem chi tiết đơn hàng
+                        </a>
                         <a href="/" class="btn btn-primary me-3">
                             <i class="bi bi-house"></i> Về trang chủ
                         </a>

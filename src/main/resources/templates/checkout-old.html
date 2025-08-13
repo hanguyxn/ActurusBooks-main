@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đặt hàng - ActurusBooks</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/index.css">
+</head>
+
+<body>
+    <div th:replace="~{fragments/navbar-customer :: navbar}"></div>
+
+    <section class="checkout-section py-5" style="background:#f8f9fa;">
+        <div class="container">
+            <h2 class="fw-bold mb-4">Đặt hàng</h2>
+
+            <!-- Flash Messages -->
+            <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${message}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="row">
+                <!-- Thông tin khách hàng -->
+                <div class="col-lg-7">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-3">Thông tin giao hàng</h5>
+                            <form action="/order/place" method="post">
+                                <div class="mb-3">
+                                    <label for="fullName" class="form-label">Họ và tên</label>
+                                    <input type="text" class="form-control" id="fullName" name="fullName"
+                                        placeholder="Nhập họ tên" th:value="${userInfo?.full_name}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Số điện thoại</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone"
+                                        placeholder="Nhập số điện thoại" th:value="${userInfo?.phone}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Địa chỉ nhận hàng</label>
+                                    <input type="text" class="form-control" id="address" name="address"
+                                        placeholder="Nhập địa chỉ" th:value="${userInfo?.address}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="note" class="form-label">Ghi chú (tuỳ chọn)</label>
+                                    <textarea class="form-control" id="note" name="note" rows="2"
+                                        placeholder="Ghi chú cho đơn hàng"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Đơn vị vận chuyển</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="shippingMethod"
+                                            value="standard" id="standard" checked onchange="updateShippingFee()">
+                                        <label class="form-check-label" for="standard">
+                                            Giao hàng tiêu chuẩn (3-5 ngày) - <strong>20.000đ</strong>
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="shippingMethod"
+                                            value="express" id="express" onchange="updateShippingFee()">
+                                        <label class="form-check-label" for="express">
+                                            Giao hàng nhanh (1-2 ngày) - <strong>35.000đ</strong>
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="shippingMethod"
+                                            value="same_day" id="same_day" onchange="updateShippingFee()">
+                                        <label class="form-check-label" for="same_day">
+                                            Giao hàng trong ngày (chỉ nội thành HN, HCM) - <strong>50.000đ</strong>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Phương thức thanh toán</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="paymentMethod" value="cod"
+                                            id="cod" checked>
+                                        <label class="form-check-label" for="cod">Thanh toán khi nhận hàng (COD)</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="paymentMethod" value="momo"
+                                            id="momo">
+                                        <label class="form-check-label" for="momo">Thanh toán MoMo</label>
+                                    </div>
+                                    <!-- Removed VNPay as requested -->
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="paymentMethod"
+                                            value="zalopay" id="zalopay">
+                                        <label class="form-check-label" for="zalopay">Thanh toán ZaloPay</label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Mã giảm giá (nếu có)</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="voucherInput" name="voucherCode"
+                                            placeholder="Nhập mã giảm giá" th:value="${voucherCode}">
+                                        <button type="button" class="btn btn-outline-primary" onclick="applyDiscount()">
+                                            Áp dụng
+                                        </button>
+                                    </div>
+                                    <div th:if="${discountValue != null}" class="text-success mt-1">
+                                        Giảm <strong th:text="${discountValue} + '%'"></strong> từ mã "<strong
+                                            th:text="${voucherCode}"></strong>"
+                                    </div>
+                                    <div th:if="${errorMessage != null}" class="text-danger mt-1"
+                                        th:text="${errorMessage}"></div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-lg w-100">
+                                    <i class="bi bi-cart-check me-2"></i>Đặt hàng
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <!-- Tóm tắt đơn hàng -->
+                <div class="col-lg-5">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-3">Đơn hàng của bạn</h5>
+                            <ul class="list-group mb-3">
+                                <li class="list-group-item d-flex justify-content-between align-items-center"
+                                    th:each="item : ${cartItems}">
+                                    <span>
+                                        <span th:text="${item.title}"></span>
+                                        <span>x</span>
+                                        <span th:text="${item.quantity}"></span>
+                                    </span>
+                                    <span
+                                        th:text="${#numbers.formatDecimal(item.price * item.quantity, 0, 'POINT', 0, 'COMMA')} + 'đ'"></span>
+                                </li>
+
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Tạm tính</span>
+                                    <strong
+                                        th:text="${#numbers.formatDecimal(subtotal, 0, 'POINT', 0, 'COMMA')} + 'đ'"></strong>
+                                </li>
+
+                                <!-- Mức giảm giá (nếu có) -->
+                                <li class="list-group-item d-flex justify-content-between text-success"
+                                    th:if="${discountValue != null}">
+                                    <span>Giảm giá (<span th:text="${voucherCode}"></span>)</span>
+                                    <span
+                                        th:text="'-' + ${#numbers.formatDecimal(subtotal * discountValue / 100, 0, 'POINT', 0, 'COMMA')} + 'đ'"></span>
+                                </li>
+
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Vận chuyển <span id="shipping-method-text">(Giao hàng tiêu
+                                            chuẩn)</span></span>
+                                    <span id="shipping-fee-display"
+                                        th:text="${#numbers.formatDecimal(shippingFee, 0, 'POINT', 0, 'COMMA')} + 'đ'"></span>
+                                </li>
+
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span class="fw-bold">Tổng cộng</span>
+                                    <span class="fw-bold text-danger fs-5"
+                                        th:text="${#numbers.formatDecimal(total, 0, 'POINT', 0, 'COMMA')} + 'đ'"></span>
+                                </li>
+                            </ul>
+
+                            <div class="d-grid gap-2 mt-3">
+                                <a href="/cart/view" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left me-2"></i>Quay lại giỏ hàng
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer py-5">
+        <div class="container">
+            <div class="row g-4 text-dark">
+                <!-- Column 1 -->
+                <div class="col-md-2">
+                    <h5 class="fw-bold">Thể Loại</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Truyện tranh</a></li>
+                        <li><a href="#">Văn học</a></li>
+                        <li><a href="#">Kinh tế</a></li>
+                        <li><a href="#">Thiếu nhi</a></li>
+                        <li><a href="#">Kỹ năng sống</a></li>
+                    </ul>
+                </div>
+                <!-- Column 2 -->
+                <div class="col-md-2">
+                    <h5 class="fw-bold">Tài Khoản</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="register">Đăng ký</a></li>
+                        <li><a href="login">Đăng nhập</a></li>
+                        <li><a href="#">Giỏ hàng</a></li>
+                        <li><a href="#">Yêu thích</a></li>
+                        <li><a href="#">So sánh sách</a></li>
+                    </ul>
+                </div>
+                <!-- Column 3 -->
+                <div class="col-md-2">
+                    <h5 class="fw-bold">Về Chúng Tôi</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Giới thiệu</a></li>
+                        <li><a href="#">Liên hệ</a></li>
+                        <li><a href="#">Hệ thống nhà sách</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <!-- Column 4 -->
+                <div class="col-md-2">
+                    <h5 class="fw-bold">Dịch Vụ</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Lịch sử đơn hàng</a></li>
+                        <li><a href="#">Hỗ trợ khách hàng</a></li>
+                        <li><a href="#">Điều khoản</a></li>
+                        <li><a href="#">Đổi trả</a></li>
+                        <li><a href="#">Giao hàng</a></li>
+                    </ul>
+                </div>
+                <!-- Column 5 - Newsletter -->
+                <div class="col-md-4">
+                    <div class="newsletter-box text-center">
+                        <h5 class="fw-bold">Đăng Ký Nhận Tin</h5>
+                        <p>Nhận ưu đãi <strong>10%</strong> cho đơn hàng đầu tiên khi đăng ký email.</p>
+                        <form class="newsletter-form">
+                            <input type="email" class="form-control" placeholder="Nhập email của bạn..." required>
+                            <button type="submit" class="newsletter-btn">
+                                <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </form>
+                        <div class="payment-icons mt-3">
+                            <i class="bi bi-paypal"></i>
+                            <i class="bi bi-cc-visa"></i>
+                            <i class="bi bi-credit-card"></i>
+                            <i class="bi bi-amazon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Auto-update shipping fee based on selected method
+        function updateShippingFee() {
+            const shippingMethod = document.querySelector('input[name="shippingMethod"]:checked').value;
+            const shippingFeeDisplay = document.getElementById('shipping-fee-display');
+            const shippingMethodText = document.getElementById('shipping-method-text');
+            const totalDisplay = document.querySelector('.fw-bold.text-danger.fs-5');
+
+            let shippingFee = 20000; // default
+            let methodText = '(Giao hàng tiêu chuẩn)';
+
+            switch (shippingMethod) {
+                case 'standard':
+                    shippingFee = 20000;
+                    methodText = '(Giao hàng tiêu chuẩn)';
+                    break;
+                case 'express':
+                    shippingFee = 35000;
+                    methodText = '(Giao hàng nhanh)';
+                    break;
+                case 'same_day':
+                    shippingFee = 50000;
+                    methodText = '(Giao hàng trong ngày)';
+                    break;
+            }
+
+            // Update display
+            shippingFeeDisplay.textContent = new Intl.NumberFormat('vi-VN').format(shippingFee) + 'đ';
+            shippingMethodText.textContent = methodText;
+
+            // Calculate new total
+            const subtotal = parseFloat(document.querySelector('.list-group-item:nth-child(2) strong').textContent.replace(/[^\d]/g, ''));
+            const discountElement = document.querySelector('.text-success span');
+            let discountAmount = 0;
+            if (discountElement) {
+                discountAmount = parseFloat(discountElement.textContent.replace(/[^\d]/g, ''));
+            }
+
+            const newTotal = subtotal - discountAmount + shippingFee;
+            totalDisplay.textContent = new Intl.NumberFormat('vi-VN').format(newTotal) + 'đ';
+        }
+
+        function applyDiscount() {
+            const voucherCode = document.getElementById('voucherInput').value.trim();
+            if (!voucherCode) {
+                alert('Vui lòng nhập mã giảm giá!');
+                return;
+            }
+
+            // Save form data to preserve after redirect
+            const formData = {
+                fullName: document.getElementById('fullName').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                note: document.getElementById('note').value,
+                shippingMethod: document.querySelector('input[name="shippingMethod"]:checked').value,
+                paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value
+            };
+
+            // Store in sessionStorage
+            sessionStorage.setItem('checkoutFormData', JSON.stringify(formData));
+
+            // Create form and submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/cart/apply-discount';
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'voucher';
+            input.value = voucherCode;
+
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        // Restore form data on page load if available
+        document.addEventListener('DOMContentLoaded', function () {
+            const savedData = sessionStorage.getItem('checkoutFormData');
+            if (savedData) {
+                const formData = JSON.parse(savedData);
+
+                // Only restore if fields are empty (to not override server data)
+                if (!document.getElementById('fullName').value) {
+                    document.getElementById('fullName').value = formData.fullName || '';
+                }
+                if (!document.getElementById('phone').value) {
+                    document.getElementById('phone').value = formData.phone || '';
+                }
+                if (!document.getElementById('address').value) {
+                    document.getElementById('address').value = formData.address || '';
+                }
+                document.getElementById('note').value = formData.note || '';
+
+                // Restore radio selections
+                if (formData.shippingMethod) {
+                    document.getElementById(formData.shippingMethod).checked = true;
+                    updateShippingFee();
+                }
+                if (formData.paymentMethod) {
+                    document.getElementById(formData.paymentMethod).checked = true;
+                }
+
+                // Clear saved data after restoration
+                sessionStorage.removeItem('checkoutFormData');
+            }
+        });
+    </script>
+</body>
